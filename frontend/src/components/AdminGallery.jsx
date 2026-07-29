@@ -1,11 +1,10 @@
 // frontend/src/components/AdminGallery.jsx
 import React, { useState, useEffect } from "react";
-import { FaTrash, FaEdit, FaPlus, FaSave, FaUpload } from "react-icons/fa";
+import { FaTrash, FaEdit, FaPlus, FaSave } from "react-icons/fa";
 
 function AdminGallery() {
-  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  // ✅ URL del backend
   const API_URL = "https://barberia-backend-jh00.onrender.com";
-  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +21,9 @@ function AdminGallery() {
 
   const getToken = () => localStorage.getItem("token");
 
+  // ============================================
+  // CARGAR IMÁGENES
+  // ============================================
   const loadImages = async () => {
     try {
       setLoading(true);
@@ -44,6 +46,9 @@ function AdminGallery() {
     loadImages();
   }, []);
 
+  // ============================================
+  // MANEJAR SELECCIÓN DE ARCHIVO
+  // ============================================
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -56,6 +61,9 @@ function AdminGallery() {
     }
   };
 
+  // ============================================
+  // AGREGAR IMAGEN
+  // ============================================
   const handleAddImage = async (e) => {
     e.preventDefault();
 
@@ -106,6 +114,9 @@ function AdminGallery() {
     }
   };
 
+  // ============================================
+  // ACTUALIZAR IMAGEN
+  // ============================================
   const handleUpdateImage = async (e) => {
     e.preventDefault();
 
@@ -125,7 +136,7 @@ function AdminGallery() {
       formDataToSend.append("orden", formData.orden);
 
       const response = await fetch(
-        `${API_URL}/api/gallery/${editingImage.id}`,
+        `${API_URL}/api/gallery/${editingImage.id || editingImage._id}`,
         {
           method: "PUT",
           headers: { Authorization: token },
@@ -151,17 +162,31 @@ function AdminGallery() {
     }
   };
 
-  const deleteImage = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar esta imagen?")) return;
+  // ============================================
+  // ✅ ELIMINAR IMAGEN (CORREGIDO)
+  // ============================================
+  const deleteImage = async (image) => {
+    // Obtener el ID correcto (MongoDB usa _id, SQLite usa id)
+    const imageId = image.id || image._id;
+
+    if (!imageId) {
+      console.error("❌ No se encontró ID de la imagen");
+      alert("❌ Error: la imagen no tiene un ID válido");
+      return;
+    }
+
+    if (!window.confirm(`¿Estás seguro de eliminar "${image.title}"?`)) return;
 
     try {
       const token = getToken();
       if (!token) {
-        setError("No estás autenticado. Por favor, inicia sesión nuevamente.");
+        alert("No estás autenticado. Inicia sesión nuevamente.");
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/gallery/${id}`, {
+      console.log(`🗑️ Eliminando imagen con ID: ${imageId}`);
+
+      const response = await fetch(`${API_URL}/api/gallery/${imageId}`, {
         method: "DELETE",
         headers: { Authorization: token },
       });
@@ -169,16 +194,22 @@ function AdminGallery() {
       if (response.ok) {
         await loadImages();
         alert("✅ Imagen eliminada correctamente");
+      } else if (response.status === 404) {
+        alert("❌ La imagen ya no existe");
+        await loadImages();
       } else {
         const data = await response.json();
-        setError(data.message || "Error al eliminar");
+        alert("❌ Error: " + (data.message || "Error desconocido"));
       }
     } catch (err) {
-      console.error("Error al eliminar:", err);
-      setError("Error al conectar con el servidor");
+      console.error("❌ Error al eliminar:", err);
+      alert("❌ Error al conectar con el servidor");
     }
   };
 
+  // ============================================
+  // INICIAR EDICIÓN
+  // ============================================
   const startEditing = (image) => {
     setEditingImage(image);
     setFormData({
@@ -190,6 +221,9 @@ function AdminGallery() {
     setSelectedFile(null);
   };
 
+  // ============================================
+  // RENDERIZAR
+  // ============================================
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "2rem", color: "#888" }}>
@@ -427,7 +461,7 @@ function AdminGallery() {
         >
           {images.map((image) => (
             <div
-              key={image.id}
+              key={image.id || image._id}
               style={{
                 background: "linear-gradient(145deg, #1a1a1a, #121212)",
                 borderRadius: "15px",
@@ -484,7 +518,7 @@ function AdminGallery() {
                     <FaEdit /> Editar
                   </button>
                   <button
-                    onClick={() => deleteImage(image.id)}
+                    onClick={() => deleteImage(image)}
                     style={{
                       background: "rgba(244, 67, 54, 0.2)",
                       color: "#f44336",
