@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { FaTrash, FaEdit, FaPlus, FaSave, FaUpload } from "react-icons/fa";
 
 function AdminGallery() {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,20 +18,12 @@ function AdminGallery() {
     orden: 0,
   });
 
-  // ============================================
-  // OBTENER TOKEN DEL LOCALSTORAGE
-  // ============================================
-  const getToken = () => {
-    return localStorage.getItem("token");
-  };
+  const getToken = () => localStorage.getItem("token");
 
-  // ============================================
-  // CARGAR IMÁGENES
-  // ============================================
   const loadImages = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/gallery");
+      const response = await fetch(`${API_URL}/api/gallery`);
       const data = await response.json();
 
       if (data.success) {
@@ -48,9 +42,6 @@ function AdminGallery() {
     loadImages();
   }, []);
 
-  // ============================================
-  // MANEJAR SELECCIÓN DE ARCHIVO
-  // ============================================
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -63,9 +54,6 @@ function AdminGallery() {
     }
   };
 
-  // ============================================
-  // AGREGAR IMAGEN (CON TOKEN)
-  // ============================================
   const handleAddImage = async (e) => {
     e.preventDefault();
 
@@ -76,7 +64,6 @@ function AdminGallery() {
 
     try {
       const token = getToken();
-
       if (!token) {
         setError("No estás autenticado. Por favor, inicia sesión nuevamente.");
         return;
@@ -87,11 +74,9 @@ function AdminGallery() {
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
 
-      const response = await fetch("http://localhost:5000/api/gallery", {
+      const response = await fetch(`${API_URL}/api/gallery`, {
         method: "POST",
-        headers: {
-          Authorization: token, // ← ENVIAR EL TOKEN
-        },
+        headers: { Authorization: token },
         body: formDataToSend,
       });
 
@@ -107,7 +92,6 @@ function AdminGallery() {
         alert("✅ Imagen agregada correctamente");
       } else {
         setError(data.message || "Error al agregar imagen");
-        // Si el token expiró, redirigir al login
         if (response.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
@@ -120,15 +104,11 @@ function AdminGallery() {
     }
   };
 
-  // ============================================
-  // ACTUALIZAR IMAGEN (CON TOKEN)
-  // ============================================
   const handleUpdateImage = async (e) => {
     e.preventDefault();
 
     try {
       const token = getToken();
-
       if (!token) {
         setError("No estás autenticado. Por favor, inicia sesión nuevamente.");
         return;
@@ -143,12 +123,10 @@ function AdminGallery() {
       formDataToSend.append("orden", formData.orden);
 
       const response = await fetch(
-        `http://localhost:5000/api/gallery/${editingImage.id}`,
+        `${API_URL}/api/gallery/${editingImage.id}`,
         {
           method: "PUT",
-          headers: {
-            Authorization: token, // ← ENVIAR EL TOKEN
-          },
+          headers: { Authorization: token },
           body: formDataToSend,
         },
       );
@@ -171,25 +149,19 @@ function AdminGallery() {
     }
   };
 
-  // ============================================
-  // ELIMINAR IMAGEN (CON TOKEN)
-  // ============================================
   const deleteImage = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar esta imagen?")) return;
 
     try {
       const token = getToken();
-
       if (!token) {
         setError("No estás autenticado. Por favor, inicia sesión nuevamente.");
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/gallery/${id}`, {
+      const response = await fetch(`${API_URL}/api/gallery/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: token, // ← ENVIAR EL TOKEN
-        },
+        headers: { Authorization: token },
       });
 
       if (response.ok) {
@@ -205,9 +177,6 @@ function AdminGallery() {
     }
   };
 
-  // ============================================
-  // INICIAR EDICIÓN
-  // ============================================
   const startEditing = (image) => {
     setEditingImage(image);
     setFormData({
@@ -215,13 +184,10 @@ function AdminGallery() {
       description: image.description || "",
       orden: image.orden || 0,
     });
-    setPreviewUrl(`http://localhost:5000${image.url}`);
+    setPreviewUrl(`${API_URL}${image.url}`);
     setSelectedFile(null);
   };
 
-  // ============================================
-  // RENDERIZAR
-  // ============================================
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "2rem", color: "#888" }}>
@@ -286,7 +252,6 @@ function AdminGallery() {
         </div>
       )}
 
-      {/* ===== FORMULARIO ===== */}
       {showForm && (
         <div
           style={{
@@ -300,7 +265,6 @@ function AdminGallery() {
           <h4 style={{ color: "white", marginBottom: "1rem" }}>
             📷 Agregar Nueva Imagen
           </h4>
-
           {previewUrl && (
             <div style={{ marginBottom: "1rem", textAlign: "center" }}>
               <img
@@ -315,7 +279,6 @@ function AdminGallery() {
               />
             </div>
           )}
-
           <form onSubmit={handleAddImage}>
             <div style={{ marginBottom: "1rem" }}>
               <label
@@ -346,7 +309,6 @@ function AdminGallery() {
                 Formatos: JPG, PNG, GIF, WebP (Máx 5MB)
               </small>
             </div>
-
             <div style={{ marginBottom: "1rem" }}>
               <label
                 style={{
@@ -376,7 +338,6 @@ function AdminGallery() {
                 }}
               />
             </div>
-
             <div style={{ marginBottom: "1rem" }}>
               <label
                 style={{
@@ -405,7 +366,6 @@ function AdminGallery() {
                 }}
               />
             </div>
-
             <div style={{ display: "flex", gap: "1rem" }}>
               <button
                 type="submit"
@@ -448,7 +408,6 @@ function AdminGallery() {
         </div>
       )}
 
-      {/* ===== LISTA DE IMÁGENES ===== */}
       {images.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>
           <p>No hay imágenes en la galería</p>
@@ -477,7 +436,7 @@ function AdminGallery() {
             >
               <div style={{ height: "200px", overflow: "hidden" }}>
                 <img
-                  src={`http://localhost:5000${image.url}`}
+                  src={`${API_URL}${image.url}`}
                   alt={image.title}
                   style={{
                     width: "100%",

@@ -1,3 +1,4 @@
+// frontend/src/components/BookingForm.jsx
 import React, { useState } from "react";
 import {
   FaWhatsapp,
@@ -9,6 +10,8 @@ import {
 } from "react-icons/fa";
 
 function BookingForm() {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const [formData, setFormData] = useState({
     nombre: "",
     telefono: "",
@@ -19,6 +22,8 @@ function BookingForm() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
@@ -27,16 +32,13 @@ function BookingForm() {
     });
   };
 
-  // frontend/src/components/BookingForm.jsx
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // 1. Guardar en la base de datos (backend)
-      const response = await fetch("http://localhost:5000/api/bookings", {
+      const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,7 +52,6 @@ function BookingForm() {
         throw new Error(data.message || "Error al guardar la reserva");
       }
 
-      // 2. Abrir WhatsApp
       const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
@@ -76,7 +77,7 @@ function BookingForm() {
   if (submitted) {
     return (
       <div className="booking-success">
-        <h2>¡Reserva Enviada!</h2>
+        <h2>✅ ¡Reserva Enviada!</h2>
         <p>Tu mensaje ha sido enviado a nuestro WhatsApp.</p>
         <p style={{ fontSize: "0.9rem", color: "#888", marginTop: "1rem" }}>
           Te contactaremos en breve para confirmar tu cita.
@@ -129,7 +130,7 @@ function BookingForm() {
           </div>
 
           <div className="form-group">
-            <label>Servicio *</label>
+            <label>✂️ Servicio *</label>
             <select
               name="servicio"
               value={formData.servicio}
@@ -191,6 +192,21 @@ function BookingForm() {
             />
           </div>
 
+          {error && (
+            <div
+              style={{
+                background: "#ff4444",
+                color: "white",
+                padding: "10px 15px",
+                borderRadius: "10px",
+                marginBottom: "1rem",
+                textAlign: "center",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn-primary btn-full"
@@ -209,17 +225,12 @@ function BookingForm() {
               fontWeight: "600",
               boxShadow: "0 5px 25px rgba(37, 211, 102, 0.3)",
               transition: "all 0.3s ease",
+              opacity: loading ? 0.7 : 1,
             }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-2px) scale(1.02)";
-              e.target.style.boxShadow = "0 10px 40px rgba(37, 211, 102, 0.5)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0) scale(1)";
-              e.target.style.boxShadow = "0 5px 25px rgba(37, 211, 102, 0.3)";
-            }}
+            disabled={loading}
           >
-            <FaWhatsapp size={24} /> Enviar por WhatsApp
+            <FaWhatsapp size={24} />{" "}
+            {loading ? "Enviando..." : "Enviar por WhatsApp"}
           </button>
 
           <p

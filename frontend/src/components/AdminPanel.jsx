@@ -12,9 +12,8 @@ import AdminLogin from "./AdminLogin";
 import AdminGallery from "./AdminGallery";
 
 function AdminPanel() {
-  // ============================================
-  // ESTADOS
-  // ============================================
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("reservas");
@@ -22,18 +21,12 @@ function AdminPanel() {
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ============================================
-  // VERIFICAR AUTENTICACIÓN AL CARGAR
-  // ============================================
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (token) {
-      // Verificar token con el backend
-      fetch("http://localhost:5000/api/auth/verify", {
-        headers: {
-          Authorization: token,
-        },
+      fetch(`${API_URL}/api/auth/verify`, {
+        headers: { Authorization: token },
       })
         .then((res) => res.json())
         .then((data) => {
@@ -57,27 +50,19 @@ function AdminPanel() {
     }
   }, []);
 
-  // ============================================
-  // CARGAR RESERVAS
-  // ============================================
   const loadBookings = async () => {
     try {
       setBookingsLoading(true);
       const token = localStorage.getItem("token");
-
-      const response = await fetch("http://localhost:5000/api/bookings", {
-        headers: {
-          Authorization: token,
-        },
+      const response = await fetch(`${API_URL}/api/bookings`, {
+        headers: { Authorization: token },
       });
-
       const data = await response.json();
 
       if (data.success) {
         setBookings(data.data);
       } else {
         setError("Error al cargar las reservas");
-        // Si el token expiró, cerrar sesión
         if (data.message === "Token inválido o expirado") {
           handleLogout();
         }
@@ -89,17 +74,11 @@ function AdminPanel() {
     }
   };
 
-  // ============================================
-  // LOGIN
-  // ============================================
   const handleLogin = (user) => {
     setIsAuthenticated(true);
     loadBookings();
   };
 
-  // ============================================
-  // LOGOUT
-  // ============================================
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -107,13 +86,10 @@ function AdminPanel() {
     setBookings([]);
   };
 
-  // ============================================
-  // ACTUALIZAR ESTADO DE UNA RESERVA
-  // ============================================
   const updateStatus = async (id, newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/bookings/${id}`, {
+      const response = await fetch(`${API_URL}/api/bookings/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -130,19 +106,14 @@ function AdminPanel() {
     }
   };
 
-  // ============================================
-  // ELIMINAR RESERVA
-  // ============================================
   const deleteBooking = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar esta reserva?")) return;
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/bookings/${id}`, {
+      const response = await fetch(`${API_URL}/api/bookings/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
+        headers: { Authorization: token },
       });
 
       if (response.ok) {
@@ -153,9 +124,6 @@ function AdminPanel() {
     }
   };
 
-  // ============================================
-  // ABRIR WHATSAPP CON EL CLIENTE
-  // ============================================
   const openWhatsApp = (telefono, nombre) => {
     const mensaje = `Hola ${nombre}, soy de la barbería. Te confirmo tu cita.`;
     window.open(
@@ -164,9 +132,6 @@ function AdminPanel() {
     );
   };
 
-  // ============================================
-  // FORMATEAR FECHA
-  // ============================================
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -175,9 +140,6 @@ function AdminPanel() {
     });
   };
 
-  // ============================================
-  // OBTENER COLOR DEL ESTADO
-  // ============================================
   const getStatusColor = (estado) => {
     switch (estado) {
       case "pendiente":
@@ -208,9 +170,6 @@ function AdminPanel() {
     }
   };
 
-  // ============================================
-  // RENDERIZAR TABLA DE RESERVAS
-  // ============================================
   const renderBookings = () => {
     if (bookingsLoading) {
       return (
@@ -272,7 +231,6 @@ function AdminPanel() {
           </thead>
           <tbody>
             {bookings.map((booking, index) => {
-              // Usar id o _id según la base de datos
               const bookingId = booking.id || booking._id;
               return (
                 <tr
@@ -330,7 +288,6 @@ function AdminPanel() {
                         flexWrap: "wrap",
                       }}
                     >
-                      {/* WhatsApp */}
                       <button
                         onClick={() =>
                           openWhatsApp(booking.telefono, booking.nombre)
@@ -348,8 +305,6 @@ function AdminPanel() {
                       >
                         <FaWhatsapp />
                       </button>
-
-                      {/* Confirmar */}
                       {booking.estado === "pendiente" && (
                         <button
                           onClick={() => updateStatus(bookingId, "confirmada")}
@@ -367,8 +322,6 @@ function AdminPanel() {
                           <FaCheck />
                         </button>
                       )}
-
-                      {/* Completar */}
                       {booking.estado === "confirmada" && (
                         <button
                           onClick={() => updateStatus(bookingId, "completada")}
@@ -386,8 +339,6 @@ function AdminPanel() {
                           ✅
                         </button>
                       )}
-
-                      {/* Cancelar */}
                       {booking.estado !== "cancelada" &&
                         booking.estado !== "completada" && (
                           <button
@@ -406,8 +357,6 @@ function AdminPanel() {
                             <FaTimes />
                           </button>
                         )}
-
-                      {/* Eliminar */}
                       <button
                         onClick={() => deleteBooking(bookingId)}
                         style={{
@@ -434,9 +383,6 @@ function AdminPanel() {
     );
   };
 
-  // ============================================
-  // SI ESTÁ CARGANDO LA AUTENTICACIÓN
-  // ============================================
   if (loading) {
     return (
       <div
@@ -454,16 +400,10 @@ function AdminPanel() {
     );
   }
 
-  // ============================================
-  // SI NO ESTÁ AUTENTICADO, MOSTRAR LOGIN
-  // ============================================
   if (!isAuthenticated) {
     return <AdminLogin onLogin={handleLogin} />;
   }
 
-  // ============================================
-  // SI ESTÁ AUTENTICADO, MOSTRAR EL PANEL
-  // ============================================
   return (
     <section
       style={{
@@ -474,7 +414,6 @@ function AdminPanel() {
       }}
     >
       <div className="container">
-        {/* ===== HEADER CON LOGOUT ===== */}
         <div
           style={{
             display: "flex",
@@ -511,18 +450,11 @@ function AdminPanel() {
               fontSize: "0.95rem",
               transition: "all 0.3s ease",
             }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "rgba(255,0,0,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "rgba(255,0,0,0.1)";
-            }}
           >
             <FaSignOutAlt /> Cerrar Sesión
           </button>
         </div>
 
-        {/* ===== TABS ===== */}
         <div
           style={{
             display: "flex",
@@ -567,7 +499,6 @@ function AdminPanel() {
           </button>
         </div>
 
-        {/* ===== CONTENIDO ===== */}
         {activeTab === "reservas" && (
           <div>
             <div
@@ -599,12 +530,6 @@ function AdminPanel() {
                   gap: "8px",
                   fontWeight: "600",
                   transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = "scale(1.02)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "scale(1)";
                 }}
               >
                 <FaSync /> Actualizar

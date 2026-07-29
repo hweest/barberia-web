@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function AdminLogin({ onLogin }) {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const [email, setEmail] = useState("hectorpedraza624@gmail.com");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -12,16 +14,13 @@ function AdminLogin({ onLogin }) {
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState("");
 
-  // ============================================
-  // LOGIN
-  // ============================================
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -43,9 +42,6 @@ function AdminLogin({ onLogin }) {
     }
   };
 
-  // ============================================
-  // RECUPERAR CONTRASEÑA
-  // ============================================
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -53,14 +49,11 @@ function AdminLogin({ onLogin }) {
     setResetMessage("");
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/request-reset",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: resetEmail }),
-        },
-      );
+      const response = await fetch(`${API_URL}/api/auth/request-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
 
       const data = await response.json();
 
@@ -80,9 +73,6 @@ function AdminLogin({ onLogin }) {
     }
   };
 
-  // ============================================
-  // RENDERIZAR
-  // ============================================
   return (
     <div
       style={{
@@ -105,7 +95,6 @@ function AdminLogin({ onLogin }) {
           boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
         }}
       >
-        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h1 style={{ color: "white", fontSize: "2.5rem" }}>
             ✂️ <span style={{ color: "#d4a762" }}>Barbería</span>
@@ -115,7 +104,6 @@ function AdminLogin({ onLogin }) {
           </p>
         </div>
 
-        {/* Mensaje de error */}
         {error && (
           <div
             style={{
@@ -131,8 +119,6 @@ function AdminLogin({ onLogin }) {
             {error}
           </div>
         )}
-
-        {/* Mensaje de éxito */}
         {resetMessage && (
           <div
             style={{
@@ -150,7 +136,6 @@ function AdminLogin({ onLogin }) {
         )}
 
         {!showReset ? (
-          // ===== FORMULARIO DE LOGIN =====
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: "1.5rem" }}>
               <label
@@ -179,7 +164,6 @@ function AdminLogin({ onLogin }) {
                 }}
               />
             </div>
-
             <div style={{ marginBottom: "1.5rem" }}>
               <label
                 style={{
@@ -226,7 +210,6 @@ function AdminLogin({ onLogin }) {
                 </button>
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -246,7 +229,6 @@ function AdminLogin({ onLogin }) {
             >
               {loading ? "Cargando..." : "🔓 Iniciar Sesión"}
             </button>
-
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
               <button
                 type="button"
@@ -269,7 +251,6 @@ function AdminLogin({ onLogin }) {
             </div>
           </form>
         ) : (
-          // ===== FORMULARIO DE RECUPERACIÓN =====
           <form onSubmit={handleResetPassword}>
             <h3 style={{ color: "white", marginBottom: "1rem" }}>
               🔐 Recuperar Contraseña
@@ -284,7 +265,6 @@ function AdminLogin({ onLogin }) {
               Ingresa tu email y te enviaremos un enlace para restablecer tu
               contraseña.
             </p>
-
             <div style={{ marginBottom: "1.5rem" }}>
               <label
                 style={{
@@ -312,7 +292,6 @@ function AdminLogin({ onLogin }) {
                 }}
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -332,7 +311,6 @@ function AdminLogin({ onLogin }) {
             >
               {loading ? "Enviando..." : "📧 Enviar correo"}
             </button>
-
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
               <button
                 type="button"
@@ -353,7 +331,6 @@ function AdminLogin({ onLogin }) {
             </div>
           </form>
         )}
-
         <div
           style={{
             textAlign: "center",

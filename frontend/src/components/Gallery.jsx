@@ -8,13 +8,13 @@ function Gallery() {
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // ============================================
-  // CARGAR IMÁGENES DE LA BASE DE DATOS
-  // ============================================
+  // ✅ URL dinámica con variable de entorno
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const loadImages = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/gallery");
+      const response = await fetch(`${API_URL}/api/gallery`);
       const data = await response.json();
 
       if (data.success) {
@@ -44,9 +44,6 @@ function Gallery() {
     );
   };
 
-  // ============================================
-  // RENDERIZAR
-  // ============================================
   if (loading) {
     return (
       <section id="galeria" className="gallery">
@@ -114,10 +111,7 @@ function Gallery() {
                 className="gallery-item"
                 onClick={() => openModal(image)}
               >
-                <img
-                  src={`http://localhost:5000${image.url}`}
-                  alt={image.title}
-                />
+                <img src={`${API_URL}${image.url}`} alt={image.title} />
                 <div className="gallery-overlay">
                   <p>{image.title}</p>
                   {image.description && (
@@ -154,7 +148,7 @@ function Gallery() {
                 &times;
               </span>
               <img
-                src={`http://localhost:5000${selectedImage.url}`}
+                src={`${API_URL}${selectedImage.url}`}
                 alt={selectedImage.title}
               />
               <p>{selectedImage.title}</p>
