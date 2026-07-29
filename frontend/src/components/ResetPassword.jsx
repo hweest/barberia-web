@@ -4,6 +4,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaLock, FaEye, FaEyeSlash, FaCheck } from "react-icons/fa";
 
 function ResetPassword() {
+  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -17,9 +21,6 @@ function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(true);
 
-  // ============================================
-  // VERIFICAR QUE EL TOKEN EXISTE
-  // ============================================
   useEffect(() => {
     if (!token) {
       setValidToken(false);
@@ -27,22 +28,17 @@ function ResetPassword() {
     }
   }, [token]);
 
-  // ============================================
-  // RESTABLECER CONTRASEÑA
-  // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Validar que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       setLoading(false);
       return;
     }
 
-    // Validar longitud
     if (newPassword.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
       setLoading(false);
@@ -50,19 +46,16 @@ function ResetPassword() {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/reset-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: token,
-            newPassword: newPassword,
-          }),
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          token: token,
+          newPassword: newPassword,
+        }),
+      });
 
       const data = await response.json();
 
@@ -84,9 +77,6 @@ function ResetPassword() {
     }
   };
 
-  // ============================================
-  // SI EL TOKEN ES INVÁLIDO
-  // ============================================
   if (!validToken) {
     return (
       <div
@@ -137,9 +127,6 @@ function ResetPassword() {
     );
   }
 
-  // ============================================
-  // SI LA CONTRASEÑA SE CAMBIÓ CON ÉXITO
-  // ============================================
   if (success) {
     return (
       <div
@@ -206,9 +193,6 @@ function ResetPassword() {
     );
   }
 
-  // ============================================
-  // FORMULARIO DE RESTABLECIMIENTO
-  // ============================================
   return (
     <div
       style={{
@@ -231,7 +215,6 @@ function ResetPassword() {
           boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
         }}
       >
-        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h1 style={{ color: "white", fontSize: "2rem" }}>
             ✂️ <span style={{ color: "#d4a762" }}>Barbería</span>
@@ -241,7 +224,6 @@ function ResetPassword() {
           </p>
         </div>
 
-        {/* Mensaje de error */}
         {error && (
           <div
             style={{
@@ -259,7 +241,6 @@ function ResetPassword() {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Nueva contraseña */}
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               style={{
@@ -309,7 +290,6 @@ function ResetPassword() {
             <small style={{ color: "#555" }}>Mínimo 6 caracteres</small>
           </div>
 
-          {/* Confirmar contraseña */}
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               style={{

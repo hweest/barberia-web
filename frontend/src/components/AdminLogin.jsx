@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function AdminLogin({ onLogin }) {
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [email, setEmail] = useState("hectorpedraza624@gmail.com");
   const [password, setPassword] = useState("");

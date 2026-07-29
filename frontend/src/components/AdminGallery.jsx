@@ -3,7 +3,9 @@ import React, { useState, useEffect } from "react";
 import { FaTrash, FaEdit, FaPlus, FaSave, FaUpload } from "react-icons/fa";
 
 function AdminGallery() {
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);

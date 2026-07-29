@@ -3,13 +3,14 @@ import React, { useState, useEffect } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 
 function Gallery() {
+  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-
-  // ✅ URL dinámica con variable de entorno
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const loadImages = async () => {
     try {

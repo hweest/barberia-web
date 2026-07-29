@@ -12,7 +12,9 @@ import AdminLogin from "./AdminLogin";
 import AdminGallery from "./AdminGallery";
 
 function AdminPanel() {
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
