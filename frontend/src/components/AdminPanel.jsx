@@ -10,12 +10,11 @@ import {
 } from "react-icons/fa";
 import AdminLogin from "./AdminLogin";
 import AdminGallery from "./AdminGallery";
-import AdminPrices from "./AdminPrices"; // ← IMPORTAR EL NUEVO COMPONENTE
+import AdminPrices from "./AdminPrices";
 
 function AdminPanel() {
   // ✅ URL del backend (hardcodeada temporalmente para pruebas)
   const API_URL = "https://barberia-backend-jh00.onrender.com";
-  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -89,6 +88,9 @@ function AdminPanel() {
     setBookings([]);
   };
 
+  // ============================================
+  // ACTUALIZAR ESTADO DE UNA RESERVA (CON WHATSAPP)
+  // ============================================
   const updateStatus = async (id, newStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -101,8 +103,23 @@ function AdminPanel() {
         body: JSON.stringify({ estado: newStatus }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         loadBookings();
+
+        // Si es cancelación y hay URL de WhatsApp, abrirla
+        if (data.cancelacion && data.whatsappUrl) {
+          if (
+            window.confirm(
+              "¿Deseas enviar una notificación de cancelación al cliente por WhatsApp?",
+            )
+          ) {
+            window.open(data.whatsappUrl, "_blank");
+          }
+        }
+      } else {
+        console.error("Error al actualizar:", data.message);
       }
     } catch (err) {
       console.error("Error al actualizar:", err);
@@ -503,7 +520,6 @@ function AdminPanel() {
           >
             🖼️ Galería
           </button>
-          {/* NUEVO BOTÓN DE PRECIOS */}
           <button
             onClick={() => setActiveTab("precios")}
             style={{
@@ -566,8 +582,6 @@ function AdminPanel() {
         )}
 
         {activeTab === "galeria" && <AdminGallery />}
-
-        {/* NUEVO CONTENIDO DE PRECIOS */}
         {activeTab === "precios" && <AdminPrices />}
       </div>
     </section>

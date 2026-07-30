@@ -396,16 +396,14 @@ app.post("/api/bookings", async (req, res) => {
     // ============================================
     // ENVIAR NOTIFICACIÓN POR WHATSAPP
     // ============================================
-    const numeroWhatsApp = "5351028354"; // ← ¡CAMBIA ESTO POR TU NÚMERO!
+    const numeroWhatsApp = "5351028354";
 
-    // Formatear la fecha para el mensaje
     const fechaFormateada = new Date(fecha).toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
 
-    // Construir el mensaje
     const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Cliente:* ${nombre}
@@ -423,18 +421,14 @@ app.post("/api/bookings", async (req, res) => {
 ---
 *Responde a este mensaje para confirmar la cita*`;
 
-    // Codificar el mensaje para la URL
     const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-
-    // Crear el enlace de WhatsApp
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
 
-    // Devolver la URL para que el frontend la abra
     res.status(201).json({
       success: true,
       message: "✅ Reserva creada exitosamente",
       data: booking,
-      whatsappUrl: urlWhatsApp, // ← Enviamos la URL al frontend
+      whatsappUrl: urlWhatsApp,
     });
   } catch (error) {
     console.error("Error al crear reserva:", error);
@@ -465,10 +459,13 @@ app.get("/api/bookings/:id", verifyToken, async (req, res) => {
   }
 });
 
-// 4. ACTUALIZAR ESTADO (PROTEGIDA)
+// ============================================
+// 4. ACTUALIZAR ESTADO (PROTEGIDA) - CON WHATSAPP DE CANCELACIÓN
+// ============================================
 app.put("/api/bookings/:id", verifyToken, async (req, res) => {
   try {
     const { estado } = req.body;
+    const id = req.params.id;
     const estadosValidos = [
       "pendiente",
       "confirmada",
@@ -483,12 +480,8 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
       });
     }
 
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      { estado },
-      { new: true },
-    );
-
+    // Obtener la reserva antes de actualizar
+    const booking = await Booking.findById(id);
     if (!booking) {
       return res.status(404).json({
         success: false,
@@ -496,16 +489,65 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: "✅ Estado actualizado correctamente",
-      data: booking,
-    });
+    // Actualizar el estado
+    booking.estado = estado;
+    await booking.save();
+
+    // ============================================
+    // ENVIAR WHATSAPP SI SE CANCELA
+    // ============================================
+    if (estado === "cancelada") {
+      const numeroWhatsApp = booking.telefono.replace(/\+/g, "");
+      const nombreCliente = booking.nombre;
+      const servicio = booking.servicio;
+      const fecha = new Date(booking.fecha).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      const hora = booking.hora;
+
+      const mensajeWhatsApp = `❌ *CANCELACIÓN DE RESERVA - BARBERÍA*
+
+Hola ${nombreCliente},
+
+Lamentamos informarte que tu reserva ha sido *CANCELADA*.
+
+📋 *Detalles de la reserva cancelada:*
+✂️ *Servicio:* ${servicio}
+📅 *Fecha:* ${fecha}
+🕐 *Hora:* ${hora}
+
+Si deseas reagendar, contáctanos por este mismo medio.
+
+📱 *Teléfono de contacto:* +53 51028354
+
+¡Esperamos verte pronto! ✨`;
+
+      const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
+      const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+      console.log(`📤 Mensaje de cancelación enviado a ${booking.telefono}`);
+
+      res.json({
+        success: true,
+        message: "✅ Estado actualizado correctamente",
+        data: booking,
+        whatsappUrl: urlWhatsApp,
+        cancelacion: true,
+      });
+    } else {
+      res.json({
+        success: true,
+        message: "✅ Estado actualizado correctamente",
+        data: booking,
+      });
+    }
   } catch (error) {
     console.error("Error al actualizar:", error);
     res.status(500).json({
       success: false,
-      message: "Error al actualizar",
+      message: "Error al actualizar: " + error.message,
     });
   }
 });
@@ -757,7 +799,6 @@ app.post("/api/prices", verifyToken, async (req, res) => {
       });
     }
 
-    // Verificar si ya existe
     const existingPrice = await Price.findOne({ servicio });
     if (existingPrice) {
       return res.status(400).json({
