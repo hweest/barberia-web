@@ -1,65 +1,63 @@
-// src/components/Services.jsx
-import React, { useEffect } from "react";
-import {
-  FaCut,
-  FaUser,
-  FaBrush,
-  FaMagic,
-  FaFire,
-  FaWhatsapp,
-} from "react-icons/fa";
-
-const servicesData = [
-  {
-    title: "Corte de Cabello",
-    description: "Corte moderno y personalizado según tu estilo.",
-    price: "200 CUP ",
-    icon: <FaCut />,
-    border: "border-gold", // ← Borde dorado
-  },
-  {
-    title: "Arreglo de Barba",
-    description: "Diseño y mantenimiento profesional de barba.",
-    price: "100 CUP ",
-    icon: <FaUser />,
-    border: "border-silver", // ← Borde plateado
-  },
-  {
-    title: "Corte a Domicilio",
-    description: "Corte a la Orden.",
-    price: "500 CUP ",
-    icon: <FaMagic />,
-    border: "border-fire", // ← Borde fuego
-  },
-];
+// frontend/src/components/Services.jsx
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { FaWhatsapp } from "react-icons/fa";
 
 function Services() {
-  const handleReserva = (servicio) => {
+  const API_URL = "https://barberia-backend-jh00.onrender.com";
+
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ============================================
+  // CARGAR SERVICIOS DESDE LA BASE DE DATOS
+  // ============================================
+  const loadServices = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/prices`);
+      const data = await response.json();
+
+      if (data.success) {
+        setServices(data.data);
+      } else {
+        setError("Error al cargar servicios");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  const handleReservaWhatsApp = (servicio) => {
     window.open(
       `https://wa.me/5351028354?text=Hola, quiero reservar una cita para: ${servicio}`,
       "_blank",
     );
   };
 
-  // Efecto para animación al scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: "50px" },
+  if (loading) {
+    return (
+      <section id="servicios" className="services">
+        <div className="container">
+          <h2 className="section-title">
+            Nuestros <span>Servicios</span>
+          </h2>
+          <div className="gold-line"></div>
+          <p style={{ textAlign: "center", color: "#888" }}>
+            Cargando servicios...
+          </p>
+        </div>
+      </section>
     );
-
-    document.querySelectorAll(".scroll-animate").forEach((el) => {
-      observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  }
 
   return (
     <section id="servicios" className="services">
@@ -72,21 +70,60 @@ function Services() {
           Ofrecemos servicios de primera calidad para realzar tu estilo
         </p>
 
+        {error && (
+          <div
+            style={{
+              background: "#ff4444",
+              color: "white",
+              padding: "15px",
+              borderRadius: "10px",
+              marginBottom: "2rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <div className="services-grid">
-          {servicesData.map((service, index) => (
-            <div
-              key={index}
-              className={`service-card card-3d card-shine scroll-animate animate-delay-${(index % 5) + 1} ${service.border}`}
-            >
-              <div className="service-icon">{service.icon}</div>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-              <span className="service-price">{service.price}</span>
+          {services.map((service) => (
+            <div key={service.id || service._id} className="service-card">
+              <div className="service-icon" style={{ fontSize: "3rem" }}>
+                {service.icono || "✂️"}
+              </div>
+              <h3>{service.servicio}</h3>
+              <p>{service.descripcion || "Sin descripción"}</p>
+              <span className="service-price">{service.precio}</span>
               <button
                 className="btn-service"
-                onClick={() => handleReserva(service.title)}
+                onClick={() => handleReservaWhatsApp(service.servicio)}
+                style={{
+                  background: "linear-gradient(135deg, #25D366, #1da851)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  fontSize: "0.95rem",
+                  padding: "12px 35px",
+                  borderRadius: "50px",
+                  color: "white",
+                  fontWeight: "600",
+                  boxShadow: "0 5px 20px rgba(37, 211, 102, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px) scale(1.02)";
+                  e.target.style.boxShadow =
+                    "0 10px 30px rgba(37, 211, 102, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0) scale(1)";
+                  e.target.style.boxShadow =
+                    "0 5px 20px rgba(37, 211, 102, 0.2)";
+                }}
               >
-                <FaWhatsapp /> Reservar
+                <FaWhatsapp size={18} /> Reservar
               </button>
             </div>
           ))}
