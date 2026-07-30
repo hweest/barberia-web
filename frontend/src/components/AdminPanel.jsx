@@ -538,7 +538,7 @@ function AdminPanel() {
               transition: "all 0.3s ease",
             }}
           >
-            💰 Precios
+            💰 Servicios
           </button>
         </div>
 
