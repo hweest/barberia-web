@@ -525,16 +525,16 @@ function AdminPanel() {
             🖼️ Galería
           </button>
           <button
-            onClick={() => setActiveTab("precios")}
+            onClick={() => setActiveTab("servicios")}
             style={{
               background:
-                activeTab === "precios" ? "var(--primary)" : "transparent",
-              color: activeTab === "precios" ? "#0a0a0a" : "#888",
+                activeTab === "servicios" ? "var(--primary)" : "transparent",
+              color: activeTab === "servicios" ? "#0a0a0a" : "#888",
               border: "none",
               padding: "10px 25px",
               borderRadius: "50px",
               cursor: "pointer",
-              fontWeight: activeTab === "precios" ? "600" : "400",
+              fontWeight: activeTab === "servicios" ? "600" : "400",
               transition: "all 0.3s ease",
             }}
           >
@@ -543,7 +543,7 @@ function AdminPanel() {
         </div>
 
         {/* ============================================
-            CONTENIDO
+            CONTENIDO DE LAS PESTAÑAS
             ============================================ */}
         {activeTab === "reservas" && (
           <div>
@@ -586,7 +586,7 @@ function AdminPanel() {
         )}
 
         {activeTab === "galeria" && <AdminGallery />}
-        {activeTab === "precios" && <AdminPrices />}
+        {activeTab === "servicios" && <AdminPrices />}
       </div>
     </section>
   );

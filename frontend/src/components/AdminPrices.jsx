@@ -5,7 +5,7 @@ import { FaSave, FaUndo, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 function AdminPrices() {
   const API_URL = "https://barberia-backend-jh00.onrender.com";
 
-  const [prices, setPrices] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -21,18 +21,18 @@ function AdminPrices() {
   const getToken = () => localStorage.getItem("token");
 
   // ============================================
-  // CARGAR PRECIOS
+  // CARGAR SERVICIOS
   // ============================================
-  const loadPrices = async () => {
+  const loadServices = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/api/prices`);
       const data = await response.json();
 
       if (data.success) {
-        setPrices(data.data);
+        setServices(data.data);
       } else {
-        setError("Error al cargar precios");
+        setError("Error al cargar servicios");
       }
     } catch (err) {
       setError("Error al conectar con el servidor");
@@ -42,13 +42,13 @@ function AdminPrices() {
   };
 
   useEffect(() => {
-    loadPrices();
+    loadServices();
   }, []);
 
   // ============================================
-  // ACTUALIZAR PRECIO
+  // ACTUALIZAR SERVICIO
   // ============================================
-  const handleUpdatePrice = async (id) => {
+  const handleUpdateService = async (id) => {
     try {
       const token = getToken();
       if (!token) {
@@ -66,10 +66,10 @@ function AdminPrices() {
       });
 
       if (response.ok) {
-        await loadPrices();
+        await loadServices();
         setEditingId(null);
         setEditForm({ precio: "", descripcion: "" });
-        alert("✅ Precio actualizado correctamente");
+        alert("✅ Servicio actualizado correctamente");
       } else {
         const data = await response.json();
         setError(data.message || "Error al actualizar");
@@ -102,7 +102,7 @@ function AdminPrices() {
       });
 
       if (response.ok) {
-        await loadPrices();
+        await loadServices();
         alert("✅ Servicio eliminado correctamente");
       } else {
         const data = await response.json();
@@ -121,7 +121,7 @@ function AdminPrices() {
     e.preventDefault();
 
     if (!newService.servicio || !newService.precio) {
-      setError("El servicio y el precio son obligatorios");
+      setError("El nombre del servicio y el precio son obligatorios");
       return;
     }
 
@@ -142,7 +142,7 @@ function AdminPrices() {
       });
 
       if (response.ok) {
-        await loadPrices();
+        await loadServices();
         setShowAddForm(false);
         setNewService({
           servicio: "",
@@ -162,12 +162,12 @@ function AdminPrices() {
   };
 
   // ============================================
-  // RESTABLECER PRECIOS POR DEFECTO
+  // RESTABLECER SERVICIOS POR DEFECTO
   // ============================================
-  const handleResetPrices = async () => {
+  const handleResetServices = async () => {
     if (
       !window.confirm(
-        "¿Estás seguro de restablecer todos los precios a los valores predeterminados?",
+        "¿Estás seguro de restablecer todos los servicios a los valores predeterminados?",
       )
     )
       return;
@@ -188,8 +188,8 @@ function AdminPrices() {
       });
 
       if (response.ok) {
-        await loadPrices();
-        alert("✅ Precios restablecidos correctamente");
+        await loadServices();
+        alert("✅ Servicios restablecidos correctamente");
       } else {
         const data = await response.json();
         setError(data.message || "Error al restablecer");
@@ -203,11 +203,11 @@ function AdminPrices() {
   // ============================================
   // INICIAR EDICIÓN
   // ============================================
-  const startEditing = (price) => {
-    setEditingId(price.id || price._id);
+  const startEditing = (service) => {
+    setEditingId(service.id || service._id);
     setEditForm({
-      precio: price.precio,
-      descripcion: price.descripcion || "",
+      precio: service.precio,
+      descripcion: service.descripcion || "",
     });
   };
 
@@ -225,7 +225,7 @@ function AdminPrices() {
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "2rem", color: "#888" }}>
-        Cargando precios...
+        Cargando servicios...
       </div>
     );
   }
@@ -243,9 +243,9 @@ function AdminPrices() {
         }}
       >
         <div>
-          <h3 style={{ color: "white" }}>💰 Administrar Precios</h3>
+          <h3 style={{ color: "white" }}>💰 Administrar Servicios</h3>
           <p style={{ color: "#888" }}>
-            Gestiona los precios y servicios disponibles
+            Gestiona los servicios que ofreces en tu barbería
           </p>
         </div>
         <div style={{ display: "flex", gap: "1rem" }}>
@@ -267,7 +267,7 @@ function AdminPrices() {
             <FaPlus /> Agregar Servicio
           </button>
           <button
-            onClick={handleResetPrices}
+            onClick={handleResetServices}
             style={{
               background: "rgba(255, 165, 0, 0.2)",
               color: "#ffa500",
@@ -485,7 +485,7 @@ function AdminPrices() {
       )}
 
       {/* ============================================
-          LISTA DE PRECIOS
+          LISTA DE SERVICIOS
           ============================================ */}
       <div
         style={{
@@ -494,11 +494,11 @@ function AdminPrices() {
           gap: "1.5rem",
         }}
       >
-        {prices.map((price) => {
-          const isEditing = editingId === (price.id || price._id);
+        {services.map((service) => {
+          const isEditing = editingId === (service.id || service._id);
           return (
             <div
-              key={price.id || price._id}
+              key={service.id || service._id}
               style={{
                 background: "linear-gradient(145deg, #1a1a1a, #121212)",
                 padding: "1.5rem",
@@ -519,15 +519,18 @@ function AdminPrices() {
                   style={{ display: "flex", alignItems: "center", gap: "12px" }}
                 >
                   <span style={{ fontSize: "2rem" }}>
-                    {price.icono || "✂️"}
+                    {service.icono || "✂️"}
                   </span>
                   <h4 style={{ color: "white", margin: 0 }}>
-                    {price.servicio}
+                    {service.servicio}
                   </h4>
                 </div>
                 <button
                   onClick={() =>
-                    handleDeleteService(price.id || price._id, price.servicio)
+                    handleDeleteService(
+                      service.id || service._id,
+                      service.servicio,
+                    )
                   }
                   style={{
                     background: "rgba(244, 67, 54, 0.2)",
@@ -612,7 +615,9 @@ function AdminPrices() {
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem" }}>
                     <button
-                      onClick={() => handleUpdatePrice(price.id || price._id)}
+                      onClick={() =>
+                        handleUpdateService(service.id || service._id)
+                      }
                       style={{
                         background: "var(--primary)",
                         color: "#0a0a0a",
@@ -656,7 +661,7 @@ function AdminPrices() {
                       margin: "0.5rem 0",
                     }}
                   >
-                    {price.precio}
+                    {service.precio}
                   </p>
                   <p
                     style={{
@@ -665,10 +670,10 @@ function AdminPrices() {
                       margin: "0.3rem 0 1rem 0",
                     }}
                   >
-                    {price.descripcion || "Sin descripción"}
+                    {service.descripcion || "Sin descripción"}
                   </p>
                   <button
-                    onClick={() => startEditing(price)}
+                    onClick={() => startEditing(service)}
                     style={{
                       background: "rgba(33, 150, 243, 0.2)",
                       color: "#2196F3",
