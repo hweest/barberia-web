@@ -115,10 +115,15 @@ function AdminGallery() {
   };
 
   // ============================================
-  // ACTUALIZAR IMAGEN
+  // ✅ ACTUALIZAR IMAGEN (EDITAR) - UNA SOLA VEZ
   // ============================================
   const handleUpdateImage = async (e) => {
     e.preventDefault();
+
+    if (!editingImage) {
+      setError("No hay imagen seleccionada para editar");
+      return;
+    }
 
     try {
       const token = getToken();
@@ -163,7 +168,7 @@ function AdminGallery() {
   };
 
   // ============================================
-  // ✅ ELIMINAR IMAGEN (CORREGIDO)
+  // ✅ ELIMINAR IMAGEN
   // ============================================
   const deleteImage = async (image) => {
     // Obtener el ID correcto (MongoDB usa _id, SQLite usa id)
@@ -222,56 +227,6 @@ function AdminGallery() {
     setSelectedFile(null);
     setShowForm(false); // Cerrar formulario de agregar si está abierto
     setError("");
-  };
-
-  // ============================================
-  // ACTUALIZAR IMAGEN (EDITAR)
-  // ============================================
-  const handleUpdateImage = async (e) => {
-    e.preventDefault();
-
-    if (!editingImage) return;
-
-    try {
-      const token = getToken();
-      if (!token) {
-        setError("No estás autenticado. Inicia sesión nuevamente.");
-        return;
-      }
-
-      const formDataToSend = new FormData();
-      if (selectedFile) {
-        formDataToSend.append("image", selectedFile);
-      }
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("description", formData.description);
-      formDataToSend.append("orden", formData.orden);
-
-      const response = await fetch(
-        `${API_URL}/api/gallery/${editingImage.id || editingImage._id}`,
-        {
-          method: "PUT",
-          headers: { Authorization: token },
-          body: formDataToSend,
-        },
-      );
-
-      if (response.ok) {
-        await loadImages();
-        setEditingImage(null);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setFormData({ title: "", description: "", orden: 0 });
-        setError("");
-        alert("✅ Imagen actualizada correctamente");
-      } else {
-        const data = await response.json();
-        setError(data.message || "Error al actualizar");
-      }
-    } catch (err) {
-      console.error("Error:", err);
-      setError("Error al conectar con el servidor");
-    }
   };
 
   // ============================================
