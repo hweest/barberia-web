@@ -230,6 +230,17 @@ function AdminGallery() {
   };
 
   // ============================================
+  // CANCELAR EDICIÓN
+  // ============================================
+  const cancelEditing = () => {
+    setEditingImage(null);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setFormData({ title: "", description: "", orden: 0 });
+    setError("");
+  };
+
+  // ============================================
   // RENDERIZAR
   // ============================================
   if (loading) {
@@ -296,6 +307,9 @@ function AdminGallery() {
         </div>
       )}
 
+      {/* ============================================
+          FORMULARIO DE AGREGAR
+          ============================================ */}
       {showForm && (
         <div
           style={{
@@ -452,6 +466,162 @@ function AdminGallery() {
         </div>
       )}
 
+      {/* ============================================
+          FORMULARIO DE EDICIÓN
+          ============================================ */}
+      {editingImage && (
+        <div
+          style={{
+            background: "linear-gradient(145deg, #1a1a1a, #121212)",
+            padding: "2rem",
+            borderRadius: "20px",
+            marginBottom: "2rem",
+            border: "1px solid rgba(212,167,98,0.1)",
+          }}
+        >
+          <h4 style={{ color: "white", marginBottom: "1rem" }}>
+            ✏️ Editando: {editingImage.title}
+          </h4>
+          {previewUrl && (
+            <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+              <img
+                src={previewUrl}
+                alt="Vista previa"
+                style={{
+                  maxHeight: "200px",
+                  maxWidth: "100%",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              />
+            </div>
+          )}
+          <form onSubmit={handleUpdateImage}>
+            <div style={{ marginBottom: "1rem" }}>
+              <label
+                style={{
+                  color: "#888",
+                  display: "block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Cambiar Imagen (opcional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "10px",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              />
+              <small style={{ color: "#666" }}>
+                Formatos: JPG, PNG, GIF, WebP (Máx 5MB)
+              </small>
+            </div>
+            <div style={{ marginBottom: "1rem" }}>
+              <label
+                style={{
+                  color: "#888",
+                  display: "block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Título *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                placeholder="Corte Clásico"
+                required
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "10px",
+                  color: "white",
+                  fontSize: "1rem",
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: "1rem" }}>
+              <label
+                style={{
+                  color: "#888",
+                  display: "block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Descripción (opcional)
+              </label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Corte moderno con degradado"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "10px",
+                  color: "white",
+                  fontSize: "1rem",
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button
+                type="submit"
+                style={{
+                  background: "var(--primary)",
+                  color: "#0a0a0a",
+                  border: "none",
+                  padding: "10px 30px",
+                  borderRadius: "50px",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <FaSave /> Actualizar
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditing}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  color: "#888",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  padding: "10px 30px",
+                  borderRadius: "50px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ============================================
+          LISTA DE IMÁGENES
+          ============================================ */}
       {images.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>
           <p>No hay imágenes en la galería</p>
