@@ -24,6 +24,13 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
     setLoading(true);
     setError("");
 
+    // ✅ Validación mejorada
+    if (!servicio || !servicio.servicio) {
+      setError("Error: Servicio no válido");
+      setLoading(false);
+      return;
+    }
+
     if (!formData.nombre || !formData.telefono) {
       setError("Todos los campos son obligatorios");
       setLoading(false);
@@ -31,16 +38,15 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
     }
 
     try {
-      // Obtener la fecha y hora actual para la reserva
       const now = new Date();
       const fecha = now.toISOString().split("T")[0];
       const hora = now.toTimeString().slice(0, 5);
 
-      // Datos completos de la reserva
+      // ✅ Asegurar que el servicio se envía correctamente
       const reservaData = {
-        nombre: formData.nombre,
-        telefono: formData.telefono,
-        servicio: servicio.servicio,
+        nombre: formData.nombre.trim(),
+        telefono: formData.telefono.trim(),
+        servicio: servicio.servicio.trim(), // ← Asegurar que es string
         fecha: fecha,
         hora: hora,
         mensaje: `Reserva desde el botón de WhatsApp para: ${servicio.servicio}`,
@@ -48,7 +54,6 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
       console.log("📤 Enviando reserva:", reservaData);
 
-      // Guardar en la base de datos
       const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
@@ -60,12 +65,13 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Error al guardar la reserva");
+        throw new Error(
+          data.message || `Error ${response.status}: ${response.statusText}`,
+        );
       }
 
       console.log("✅ Reserva creada:", data);
 
-      // Construir mensaje para WhatsApp
       const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Cliente:* ${formData.nombre}
@@ -77,18 +83,16 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
 ¡Esperamos tu confirmación! ✨`;
 
-      // Abrir WhatsApp
       window.open(
         `https://wa.me/5351028354?text=${encodeURIComponent(mensajeWhatsApp)}`,
         "_blank",
       );
 
-      // Cerrar modal y notificar éxito
       onSuccess();
       onClose();
     } catch (err) {
       console.error("❌ Error:", err);
-      setError(err.message);
+      setError(err.message || "Error al enviar la reserva");
     } finally {
       setLoading(false);
     }
@@ -104,7 +108,7 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
         left: 0,
         width: "100%",
         height: "100%",
-        background: "rgba(0,0,0,0.8)",
+        background: "rgba(0,0,0,0.85)",
         backdropFilter: "blur(10px)",
         display: "flex",
         alignItems: "center",
@@ -148,18 +152,18 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>
-            {servicio.icono || "✂️"}
+            {servicio?.icono || "✂️"}
           </div>
           <h3 style={{ color: "white", marginBottom: "0.3rem" }}>
-            {servicio.servicio}
+            {servicio?.servicio || "Servicio"}
           </h3>
           <p
             style={{ color: "#d4a762", fontSize: "1.2rem", fontWeight: "600" }}
           >
-            {servicio.precio}
+            {servicio?.precio || "S/ 0"}
           </p>
           <p style={{ color: "#888", fontSize: "0.9rem" }}>
-            {servicio.descripcion || "Sin descripción"}
+            {servicio?.descripcion || "Sin descripción"}
           </p>
         </div>
 
@@ -234,7 +238,7 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
                 textAlign: "center",
               }}
             >
-              {error}
+              ❌ {error}
             </div>
           )}
 
