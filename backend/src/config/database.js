@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 // MODELOS (definidos aquí para mantener todo junto)
 // ============================================
 
-// Modelo de Reservas
+// Modelo de Reservas (SIN ENUM)
 const bookingSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true, trim: true },
@@ -14,13 +14,8 @@ const bookingSchema = new mongoose.Schema(
     servicio: {
       type: String,
       required: true,
-      enum: [
-        "Corte de Cabello",
-        "Arreglo de Barba",
-        "Combo Completo",
-        "Teñido",
-        "Ceremonia de Afeitado",
-      ],
+      trim: true,
+      // ✅ ELIMINADO: enum: ["Corte de Cabello", "Arreglo de Barba", "Combo Completo", "Teñido", "Ceremonia de Afeitado"],
     },
     fecha: { type: Date, required: true },
     hora: { type: String, required: true },
@@ -68,7 +63,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 // ============================================
-// MODELO DE PRECIOS (NUEVO)
+// MODELO DE PRECIOS
 // ============================================
 const priceSchema = new mongoose.Schema(
   {
