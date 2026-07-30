@@ -34,16 +34,20 @@ function BookingForm() {
     const loadServices = async () => {
       try {
         setLoadingServices(true);
+        console.log("🔄 Cargando servicios desde la API...");
         const response = await fetch(`${API_URL}/api/prices`);
         const data = await response.json();
 
+        console.log("📦 Datos recibidos:", data);
+
         if (data.success) {
+          console.log(`✅ ${data.data.length} servicios cargados:`, data.data);
           setServices(data.data);
         } else {
-          console.error("Error al cargar servicios:", data.message);
+          console.error("❌ Error en la respuesta:", data.message);
         }
       } catch (err) {
-        console.error("Error al cargar servicios:", err);
+        console.error("❌ Error al cargar servicios:", err);
       } finally {
         setLoadingServices(false);
       }
@@ -129,11 +133,16 @@ function BookingForm() {
           Completa el formulario y te contactaremos por WhatsApp
         </p>
 
-        {loadingServices && (
+        {loadingServices ? (
           <p style={{ textAlign: "center", color: "#888" }}>
             Cargando servicios disponibles...
           </p>
-        )}
+        ) : services.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#ffa500" }}>
+            ⚠️ No hay servicios disponibles. Agrega servicios desde el panel de
+            administración.
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
@@ -209,7 +218,7 @@ function BookingForm() {
               </option>
               {services.map((service) => (
                 <option
-                  key={service.id || service._id || service.servicio}
+                  key={service._id || service.id || service.servicio}
                   value={service.servicio}
                   style={{
                     background: "#1a1a1a",
@@ -221,18 +230,6 @@ function BookingForm() {
                 </option>
               ))}
             </select>
-            {!loadingServices && services.length === 0 && (
-              <p
-                style={{
-                  color: "#ffa500",
-                  fontSize: "0.85rem",
-                  marginTop: "0.5rem",
-                }}
-              >
-                ⚠️ No hay servicios disponibles. Agrega servicios desde el panel
-                de administración.
-              </p>
-            )}
           </div>
 
           <div className="form-row">
