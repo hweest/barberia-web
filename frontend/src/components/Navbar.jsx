@@ -1,5 +1,7 @@
+// frontend/src/components/Navbar.jsx
 import React, { useState, useEffect } from "react";
-import { FaCut, FaBars, FaTimes, FaWhatsapp } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { FaBars, FaTimes, FaCut } from "react-icons/fa";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,32 +21,25 @@ function Navbar() {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleReserva = () => {
-    window.open(
-      "https://wa.me/5351028354?text=¡Hola! Quiero agendar una cita en la barbería.",
-      "_blank",
-    );
-  };
-
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-container">
-        <a href="#" className="nav-logo">
+        <Link to="/" className="nav-logo">
           <FaCut className="logo-icon" />
           <span>Barbería</span>
-        </a>
+        </Link>
 
         <div className="menu-icon" onClick={toggleMenu}>
           {isOpen ? <FaTimes /> : <FaBars />}
         </div>
 
         <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
-          <li>
-            <a href="#" className="nav-link" onClick={() => setIsOpen(false)}>
+          <li className="nav-item">
+            <Link to="/" className="nav-link" onClick={() => setIsOpen(false)}>
               Inicio
-            </a>
+            </Link>
           </li>
-          <li>
+          <li className="nav-item">
             <a
               href="#servicios"
               className="nav-link"
@@ -53,7 +48,7 @@ function Navbar() {
               Servicios
             </a>
           </li>
-          <li>
+          <li className="nav-item">
             <a
               href="#galeria"
               className="nav-link"
@@ -62,7 +57,7 @@ function Navbar() {
               Galería
             </a>
           </li>
-          <li>
+          <li className="nav-item">
             <a
               href="#testimonios"
               className="nav-link"
@@ -71,11 +66,7 @@ function Navbar() {
               Testimonios
             </a>
           </li>
-          <li>
-            <button className="nav-link btn-reservar" onClick={handleReserva}>
-              <FaWhatsapp /> Reservar Cita
-            </button>
-          </li>
+          {/* ❌ ELIMINADO: Botón "Reservar Cita" */}
         </ul>
       </div>
     </nav>
