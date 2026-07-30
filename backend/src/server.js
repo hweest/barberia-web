@@ -704,7 +704,81 @@ app.put("/api/prices/:id", verifyToken, async (req, res) => {
   }
 });
 
-// 3. RESTABLECER PRECIOS POR DEFECTO (PROTEGIDA)
+// ============================================
+// 3. CREAR UN NUEVO SERVICIO (PROTEGIDA) - NUEVO
+// ============================================
+app.post("/api/prices", verifyToken, async (req, res) => {
+  try {
+    const { servicio, precio, descripcion, icono } = req.body;
+
+    if (!servicio || !precio) {
+      return res.status(400).json({
+        success: false,
+        message: "El servicio y el precio son obligatorios",
+      });
+    }
+
+    // Verificar si ya existe
+    const existingPrice = await Price.findOne({ servicio });
+    if (existingPrice) {
+      return res.status(400).json({
+        success: false,
+        message: "Este servicio ya existe",
+      });
+    }
+
+    const newPrice = await Price.create({
+      servicio,
+      precio,
+      descripcion: descripcion || "",
+      icono: icono || "✂️",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "✅ Servicio agregado correctamente",
+      data: newPrice,
+    });
+  } catch (error) {
+    console.error("Error al agregar servicio:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al agregar servicio",
+    });
+  }
+});
+
+// ============================================
+// 4. ELIMINAR UN SERVICIO (PROTEGIDA) - NUEVO
+// ============================================
+app.delete("/api/prices/:id", verifyToken, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const deletedPrice = await Price.findByIdAndDelete(id);
+
+    if (!deletedPrice) {
+      return res.status(404).json({
+        success: false,
+        message: "Servicio no encontrado",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "✅ Servicio eliminado correctamente",
+    });
+  } catch (error) {
+    console.error("Error al eliminar servicio:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al eliminar servicio",
+    });
+  }
+});
+
+// ============================================
+// 5. RESTABLECER PRECIOS POR DEFECTO (PROTEGIDA)
+// ============================================
 app.post("/api/prices/reset", verifyToken, async (req, res) => {
   try {
     const defaultPrices = [
