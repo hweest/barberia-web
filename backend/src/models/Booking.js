@@ -17,8 +17,6 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: [true, "El servicio es obligatorio"],
       trim: true,
-      // ❌ ELIMINA O COMENTA EL ENUM
-      // enum: ['Corte de Cabello', 'Arreglo de Barba', 'Combo Completo', 'Teñido', 'Ceremonia de Afeitado']
     },
     fecha: {
       type: Date,
