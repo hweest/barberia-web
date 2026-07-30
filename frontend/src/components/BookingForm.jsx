@@ -39,14 +39,20 @@ function BookingForm() {
     const loadServices = async () => {
       try {
         setLoadingServices(true);
+        console.log("🔄 Cargando servicios...");
         const response = await fetch(`${API_URL}/api/prices`);
         const data = await response.json();
 
+        console.log("📦 Servicios recibidos:", data);
+
         if (data.success) {
           setServices(data.data);
+          console.log(`✅ ${data.data.length} servicios cargados`);
+        } else {
+          console.error("❌ Error:", data.message);
         }
       } catch (err) {
-        console.error("Error al cargar servicios:", err);
+        console.error("❌ Error al cargar servicios:", err);
       } finally {
         setLoadingServices(false);
       }
@@ -90,6 +96,8 @@ function BookingForm() {
     setError("");
 
     try {
+      console.log("📤 Enviando reserva:", formData);
+
       const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
@@ -103,6 +111,8 @@ function BookingForm() {
       if (!response.ok) {
         throw new Error(data.message || "Error al guardar la reserva");
       }
+
+      console.log("✅ Reserva creada:", data);
 
       const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
@@ -122,6 +132,7 @@ function BookingForm() {
 
       setSubmitted(true);
     } catch (err) {
+      console.error("❌ Error al enviar reserva:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -202,7 +213,7 @@ function BookingForm() {
           </div>
 
           {/* ============================================
-          SELECTOR PERSONALIZADO DE SERVICIOS
+          SELECTOR PERSONALIZADO DE SERVICIOS (REACT)
           ============================================ */}
           <div className="form-group" ref={dropdownRef}>
             <label style={{ color: "#ccc" }}>✂️ Servicio *</label>
@@ -213,6 +224,7 @@ function BookingForm() {
                 cursor: "pointer",
               }}
             >
+              {/* Input visible con ícono */}
               <div
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
@@ -227,6 +239,13 @@ function BookingForm() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   userSelect: "none",
+                  transition: "border-color 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(212, 167, 98, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
                 }}
               >
                 <span>
@@ -243,6 +262,7 @@ function BookingForm() {
                 />
               </div>
 
+              {/* Dropdown con opciones (React puro) */}
               {isOpen && (
                 <div
                   style={{
@@ -250,7 +270,7 @@ function BookingForm() {
                     top: "calc(100% + 5px)",
                     left: 0,
                     right: 0,
-                    maxHeight: "200px",
+                    maxHeight: "250px",
                     overflowY: "auto",
                     background: "#1a1a1a",
                     border: "1px solid rgba(255,255,255,0.08)",
@@ -267,7 +287,7 @@ function BookingForm() {
                         textAlign: "center",
                       }}
                     >
-                      Cargando...
+                      Cargando servicios...
                     </div>
                   ) : services.length === 0 ? (
                     <div
@@ -296,7 +316,7 @@ function BookingForm() {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background =
-                            "rgba(212, 167, 98, 0.1)";
+                            "rgba(212, 167, 98, 0.15)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -305,7 +325,7 @@ function BookingForm() {
                         <span>
                           {service.icono || "✂️"} {service.servicio}
                         </span>
-                        <span style={{ color: "#d4a762" }}>
+                        <span style={{ color: "#d4a762", fontWeight: "600" }}>
                           {service.precio}
                         </span>
                       </div>
@@ -314,6 +334,18 @@ function BookingForm() {
                 </div>
               )}
             </div>
+            {!loadingServices && services.length === 0 && (
+              <p
+                style={{
+                  color: "#ffa500",
+                  fontSize: "0.85rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                ⚠️ No hay servicios disponibles. Agrega servicios desde el panel
+                de administración.
+              </p>
+            )}
           </div>
 
           <div className="form-row">
