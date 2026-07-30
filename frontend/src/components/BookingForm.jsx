@@ -1,5 +1,5 @@
 // frontend/src/components/BookingForm.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaWhatsapp,
   FaUser,
@@ -22,7 +22,7 @@ function BookingForm() {
     hora: "",
     mensaje: "",
   });
-  const [forceUpdate, setForceUpdate] = useState(0); // ← PARA FORZAR ACTUALIZACIÓN
+
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,38 +30,25 @@ function BookingForm() {
   // ============================================
   // CARGAR SERVICIOS DESDE LA BASE DE DATOS
   // ============================================
-  const loadServices = async () => {
-    try {
-      setLoadingServices(true);
-      console.log("🔄 Cargando servicios...");
-      const response = await fetch(`${API_URL}/api/prices`);
-      const data = await response.json();
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoadingServices(true);
+        const response = await fetch(`${API_URL}/api/prices`);
+        const data = await response.json();
 
-      console.log("📦 Servicios recibidos:", data);
-
-      if (data.success) {
-        setServices(data.data);
-        setForceUpdate((prev) => prev + 1); // ← FORZAR ACTUALIZACIÓN
-        console.log(`✅ ${data.data.length} servicios cargados`);
-      } else {
-        console.error("❌ Error:", data.message);
+        if (data.success) {
+          setServices(data.data);
+        } else {
+          console.error("Error al cargar servicios:", data.message);
+        }
+      } catch (err) {
+        console.error("Error al cargar servicios:", err);
+      } finally {
+        setLoadingServices(false);
       }
-    } catch (err) {
-      console.error("❌ Error al cargar servicios:", err);
-    } finally {
-      setLoadingServices(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    loadServices();
-  }, []);
-
-  // ============================================
-  // FORZAR RECARGA CADA VEZ QUE EL COMPONENTE SE MONTA
-  // ============================================
-  useEffect(() => {
-    // Recargar servicios cuando el componente se monta
     loadServices();
   }, []);
 
@@ -142,6 +129,12 @@ function BookingForm() {
           Completa el formulario y te contactaremos por WhatsApp
         </p>
 
+        {loadingServices && (
+          <p style={{ textAlign: "center", color: "#888" }}>
+            Cargando servicios disponibles...
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
             <label style={{ color: "#ccc" }}>
@@ -196,7 +189,6 @@ function BookingForm() {
               value={formData.servicio}
               onChange={handleChange}
               required
-              key={forceUpdate} // ← CLAVE PARA FORZAR ACTUALIZACIÓN
               style={{
                 width: "100%",
                 padding: "12px 16px",
@@ -229,17 +221,6 @@ function BookingForm() {
                 </option>
               ))}
             </select>
-            {loadingServices && (
-              <p
-                style={{
-                  color: "#666",
-                  fontSize: "0.85rem",
-                  marginTop: "0.5rem",
-                }}
-              >
-                Cargando servicios disponibles...
-              </p>
-            )}
             {!loadingServices && services.length === 0 && (
               <p
                 style={{
