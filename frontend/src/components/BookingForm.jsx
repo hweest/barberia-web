@@ -80,7 +80,7 @@ function BookingForm() {
         throw new Error(data.message || "Error al guardar la reserva");
       }
 
-      // 2. Abrir WhatsApp con el mensaje de confirmación (para el cliente)
+      // 2. Abrir WhatsApp con el mensaje de confirmación
       const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
@@ -133,7 +133,7 @@ function BookingForm() {
 
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
-            <label>
+            <label style={{ color: "#ccc" }}>
               <FaUser /> Nombre Completo *
             </label>
             <input
@@ -143,11 +143,20 @@ function BookingForm() {
               onChange={handleChange}
               required
               placeholder="Ej: Juan Pérez"
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.03)",
+                color: "#ffffff",
+                fontSize: "1rem",
+              }}
             />
           </div>
 
           <div className="form-group">
-            <label>
+            <label style={{ color: "#ccc" }}>
               <FaPhone /> Teléfono *
             </label>
             <input
@@ -157,11 +166,20 @@ function BookingForm() {
               onChange={handleChange}
               required
               placeholder="+53 51028354"
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.03)",
+                color: "#ffffff",
+                fontSize: "1rem",
+              }}
             />
           </div>
 
           <div className="form-group">
-            <label>✂️ Servicio *</label>
+            <label style={{ color: "#ccc" }}>✂️ Servicio *</label>
             <select
               name="servicio"
               value={formData.servicio}
@@ -214,7 +232,7 @@ function BookingForm() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>
+              <label style={{ color: "#ccc" }}>
                 <FaCalendar /> Fecha *
               </label>
               <input
@@ -224,11 +242,20 @@ function BookingForm() {
                 onChange={handleChange}
                 required
                 min={new Date().toISOString().split("T")[0]}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.03)",
+                  color: "#ffffff",
+                  fontSize: "1rem",
+                }}
               />
             </div>
 
             <div className="form-group">
-              <label>
+              <label style={{ color: "#ccc" }}>
                 <FaClock /> Hora *
               </label>
               <input
@@ -239,12 +266,21 @@ function BookingForm() {
                 required
                 min="09:00"
                 max="20:00"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.03)",
+                  color: "#ffffff",
+                  fontSize: "1rem",
+                }}
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label>
+            <label style={{ color: "#ccc" }}>
               <FaComments /> Mensaje Adicional (Opcional)
             </label>
             <textarea
@@ -253,6 +289,17 @@ function BookingForm() {
               onChange={handleChange}
               rows="3"
               placeholder="Comentarios o requerimientos especiales..."
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.03)",
+                color: "#ffffff",
+                fontSize: "1rem",
+                resize: "vertical",
+                fontFamily: "inherit",
+              }}
             />
           </div>
 
@@ -274,6 +321,7 @@ function BookingForm() {
           <button
             type="submit"
             className="btn-primary btn-full"
+            disabled={loading}
             style={{
               background: "linear-gradient(135deg, #25D366, #1da851)",
               border: "none",
@@ -290,8 +338,8 @@ function BookingForm() {
               boxShadow: "0 5px 25px rgba(37, 211, 102, 0.3)",
               transition: "all 0.3s ease",
               opacity: loading ? 0.7 : 1,
+              width: "100%",
             }}
-            disabled={loading}
             onMouseEnter={(e) => {
               if (!loading) {
                 e.target.style.transform = "translateY(-2px) scale(1.02)";
