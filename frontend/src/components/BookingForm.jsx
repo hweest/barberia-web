@@ -1,5 +1,5 @@
 // frontend/src/components/BookingForm.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaWhatsapp,
   FaUser,
@@ -12,6 +12,8 @@ import {
 function BookingForm() {
   const API_URL = "https://barberia-backend-jh00.onrender.com";
 
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [formData, setFormData] = useState({
     nombre: "",
     telefono: "",
@@ -24,6 +26,31 @@ function BookingForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ============================================
+  // CARGAR SERVICIOS DESDE LA BASE DE DATOS
+  // ============================================
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoadingServices(true);
+        const response = await fetch(`${API_URL}/api/prices`);
+        const data = await response.json();
+
+        if (data.success) {
+          setServices(data.data);
+        } else {
+          console.error("Error al cargar servicios:", data.message);
+        }
+      } catch (err) {
+        console.error("Error al cargar servicios:", err);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    loadServices();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -140,16 +167,49 @@ function BookingForm() {
               value={formData.servicio}
               onChange={handleChange}
               required
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.03)",
+                color: "#ffffff",
+                fontSize: "1rem",
+                appearance: "auto",
+                WebkitAppearance: "auto",
+                MozAppearance: "auto",
+              }}
             >
-              <option value="">Selecciona un servicio</option>
-              <option value="Corte de Cabello">Corte de Cabello</option>
-              <option value="Arreglo de Barba">Arreglo de Barba</option>
-              <option value="Combo Completo">Combo Completo</option>
-              <option value="Teñido">Teñido</option>
-              <option value="Ceremonia de Afeitado">
-                Ceremonia de Afeitado
+              <option value="" style={{ background: "#1a1a1a", color: "#888" }}>
+                {loadingServices
+                  ? "Cargando servicios..."
+                  : "Selecciona un servicio"}
               </option>
+              {services.map((service) => (
+                <option
+                  key={service.id || service._id}
+                  value={service.servicio}
+                  style={{
+                    background: "#1a1a1a",
+                    color: "#ffffff",
+                    padding: "10px",
+                  }}
+                >
+                  {service.icono || "✂️"} {service.servicio} - {service.precio}
+                </option>
+              ))}
             </select>
+            {loadingServices && (
+              <p
+                style={{
+                  color: "#666",
+                  fontSize: "0.85rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                Cargando servicios disponibles...
+              </p>
+            )}
           </div>
 
           <div className="form-row">
