@@ -67,10 +67,39 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// ============================================
+// MODELO DE PRECIOS (NUEVO)
+// ============================================
+const priceSchema = new mongoose.Schema(
+  {
+    servicio: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    precio: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    descripcion: {
+      type: String,
+      default: "",
+    },
+    icono: {
+      type: String,
+      default: "✂️",
+    },
+  },
+  { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } },
+);
+
 // Crear los modelos
 const Booking = mongoose.model("Booking", bookingSchema);
 const Gallery = mongoose.model("Gallery", gallerySchema);
 const User = mongoose.model("User", userSchema);
+const Price = mongoose.model("Price", priceSchema);
 
 // ============================================
 // FUNCIÓN PARA CREAR USUARIO POR DEFECTO
@@ -105,6 +134,62 @@ const createDefaultUser = async () => {
 };
 
 // ============================================
+// FUNCIÓN PARA CREAR PRECIOS POR DEFECTO
+// ============================================
+const createDefaultPrices = async () => {
+  try {
+    const defaultPrices = [
+      {
+        servicio: "Corte de Cabello",
+        precio: "S/ 40",
+        descripcion: "Corte moderno y personalizado según tu estilo.",
+        icono: "✂️",
+      },
+      {
+        servicio: "Arreglo de Barba",
+        precio: "S/ 30",
+        descripcion: "Diseño y mantenimiento profesional de barba.",
+        icono: "🧔",
+      },
+      {
+        servicio: "Combo Completo",
+        precio: "S/ 60",
+        descripcion: "Corte + Barba + Lavado de cabello.",
+        icono: "✨",
+      },
+      {
+        servicio: "Teñido",
+        precio: "S/ 80",
+        descripcion: "Coloración profesional con productos de calidad.",
+        icono: "🎨",
+      },
+      {
+        servicio: "Ceremonia de Afeitado",
+        precio: "S/ 50",
+        descripcion: "Experiencia premium con toallas calientes.",
+        icono: "🔥",
+      },
+    ];
+
+    for (const priceData of defaultPrices) {
+      const existingPrice = await Price.findOne({
+        servicio: priceData.servicio,
+      });
+
+      if (!existingPrice) {
+        const newPrice = new Price(priceData);
+        await newPrice.save();
+        console.log(
+          `✅ Precio creado: ${priceData.servicio} - ${priceData.precio}`,
+        );
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error al crear precios por defecto:", error.message);
+  }
+};
+
+// ============================================
 // FUNCIÓN PRINCIPAL DE CONEXIÓN
 // ============================================
 const connectDB = async () => {
@@ -119,6 +204,9 @@ const connectDB = async () => {
     // Crear usuario por defecto automáticamente
     await createDefaultUser();
 
+    // Crear precios por defecto automáticamente
+    await createDefaultPrices();
+
     return conn;
   } catch (error) {
     console.error(`❌ Error al conectar a MongoDB: ${error.message}`);
@@ -127,12 +215,14 @@ const connectDB = async () => {
 };
 
 // ============================================
-// EXPORTAR TODO (¡ESTA ES LA CLAVE!)
+// EXPORTAR TODO
 // ============================================
 module.exports = {
   connectDB,
   Booking,
   Gallery,
   User,
+  Price,
   createDefaultUser,
+  createDefaultPrices,
 };

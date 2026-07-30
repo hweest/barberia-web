@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import AdminLogin from "./AdminLogin";
 import AdminGallery from "./AdminGallery";
+import AdminPrices from "./AdminPrices"; // ← IMPORTAR EL NUEVO COMPONENTE
 
 function AdminPanel() {
   // ✅ URL del backend (hardcodeada temporalmente para pruebas)
@@ -457,6 +458,9 @@ function AdminPanel() {
           </button>
         </div>
 
+        {/* ============================================
+            TABS (CON PRECIOS)
+            ============================================ */}
         <div
           style={{
             display: "flex",
@@ -499,8 +503,28 @@ function AdminPanel() {
           >
             🖼️ Galería
           </button>
+          {/* NUEVO BOTÓN DE PRECIOS */}
+          <button
+            onClick={() => setActiveTab("precios")}
+            style={{
+              background:
+                activeTab === "precios" ? "var(--primary)" : "transparent",
+              color: activeTab === "precios" ? "#0a0a0a" : "#888",
+              border: "none",
+              padding: "10px 25px",
+              borderRadius: "50px",
+              cursor: "pointer",
+              fontWeight: activeTab === "precios" ? "600" : "400",
+              transition: "all 0.3s ease",
+            }}
+          >
+            💰 Precios
+          </button>
         </div>
 
+        {/* ============================================
+            CONTENIDO DE LAS PESTAÑAS
+            ============================================ */}
         {activeTab === "reservas" && (
           <div>
             <div
@@ -542,6 +566,9 @@ function AdminPanel() {
         )}
 
         {activeTab === "galeria" && <AdminGallery />}
+
+        {/* NUEVO CONTENIDO DE PRECIOS */}
+        {activeTab === "precios" && <AdminPrices />}
       </div>
     </section>
   );

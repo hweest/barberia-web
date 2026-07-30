@@ -16,7 +16,13 @@ dotenv.config();
 // ============================================
 // CONEXIÓN A MONGODB
 // ============================================
-const { connectDB, Booking, Gallery, User } = require("./config/database");
+const {
+  connectDB,
+  Booking,
+  Gallery,
+  User,
+  Price,
+} = require("./config/database");
 connectDB();
 
 const app = express();
@@ -628,6 +634,137 @@ app.delete("/api/gallery/:id", verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error al eliminar",
+    });
+  }
+});
+
+// ============================================
+// RUTAS DE PRECIOS (NUEVAS)
+// ============================================
+
+// 1. OBTENER TODOS LOS PRECIOS (PÚBLICA)
+app.get("/api/prices", async (req, res) => {
+  try {
+    const prices = await Price.find().sort({ created_at: 1 });
+    res.json({
+      success: true,
+      data: prices,
+    });
+  } catch (error) {
+    console.error("Error al obtener precios:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener precios",
+    });
+  }
+});
+
+// 2. ACTUALIZAR UN PRECIO (PROTEGIDA)
+app.put("/api/prices/:id", verifyToken, async (req, res) => {
+  try {
+    const { precio, descripcion, icono } = req.body;
+    const id = req.params.id;
+
+    if (!precio) {
+      return res.status(400).json({
+        success: false,
+        message: "El precio es obligatorio",
+      });
+    }
+
+    const updatedPrice = await Price.findByIdAndUpdate(
+      id,
+      {
+        precio,
+        descripcion: descripcion || "",
+        icono: icono || "✂️",
+        updated_at: new Date(),
+      },
+      { new: true },
+    );
+
+    if (!updatedPrice) {
+      return res.status(404).json({
+        success: false,
+        message: "Precio no encontrado",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "✅ Precio actualizado correctamente",
+      data: updatedPrice,
+    });
+  } catch (error) {
+    console.error("Error al actualizar precio:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al actualizar precio",
+    });
+  }
+});
+
+// 3. RESTABLECER PRECIOS POR DEFECTO (PROTEGIDA)
+app.post("/api/prices/reset", verifyToken, async (req, res) => {
+  try {
+    const defaultPrices = [
+      {
+        servicio: "Corte de Cabello",
+        precio: "S/ 40",
+        descripcion: "Corte moderno y personalizado según tu estilo.",
+        icono: "✂️",
+      },
+      {
+        servicio: "Arreglo de Barba",
+        precio: "S/ 30",
+        descripcion: "Diseño y mantenimiento profesional de barba.",
+        icono: "🧔",
+      },
+      {
+        servicio: "Combo Completo",
+        precio: "S/ 60",
+        descripcion: "Corte + Barba + Lavado de cabello.",
+        icono: "✨",
+      },
+      {
+        servicio: "Teñido",
+        precio: "S/ 80",
+        descripcion: "Coloración profesional con productos de calidad.",
+        icono: "🎨",
+      },
+      {
+        servicio: "Ceremonia de Afeitado",
+        precio: "S/ 50",
+        descripcion: "Experiencia premium con toallas calientes.",
+        icono: "🔥",
+      },
+    ];
+
+    for (const p of defaultPrices) {
+      await Price.findOneAndUpdate(
+        { servicio: p.servicio },
+        {
+          precio: p.precio,
+          descripcion: p.descripcion,
+          icono: p.icono,
+          updated_at: new Date(),
+        },
+        { upsert: true, new: true },
+      );
+    }
+
+    const prices = await Price.find().sort({ created_at: 1 });
+
+    res.json({
+      success: true,
+      message: "✅ Precios restablecidos correctamente",
+      data: prices,
+    });
+  } catch (error) {
+    console.error("Error al restablecer precios:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al restablecer precios",
     });
   }
 });
