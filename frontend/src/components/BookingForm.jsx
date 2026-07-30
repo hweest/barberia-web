@@ -14,7 +14,6 @@ function BookingForm() {
 
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
-  const [errorServices, setErrorServices] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
     telefono: "",
@@ -31,51 +30,29 @@ function BookingForm() {
   // ============================================
   // CARGAR SERVICIOS DESDE LA BASE DE DATOS
   // ============================================
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        setLoadingServices(true);
-        setErrorServices("");
-        console.log("🔄 Cargando servicios desde:", `${API_URL}/api/prices`);
+  const loadServices = async () => {
+    try {
+      setLoadingServices(true);
+      console.log("🔄 Cargando servicios...");
+      const response = await fetch(`${API_URL}/api/prices`);
+      const data = await response.json();
 
-        const response = await fetch(`${API_URL}/api/prices`);
-        const data = await response.json();
+      console.log("📦 Servicios recibidos:", data);
 
-        console.log("📦 Respuesta de la API:", data);
-
-        if (data.success) {
-          console.log(`✅ ${data.data.length} servicios cargados:`, data.data);
-          setServices(data.data);
-        } else {
-          console.error("❌ Error en la respuesta:", data.message);
-          setErrorServices("Error al cargar los servicios: " + data.message);
-          // Usar servicios de respaldo si la API falla
-          setServices([
-            { servicio: "Corte de Cabello", precio: "S/ 40", icono: "✂️" },
-            { servicio: "Arreglo de Barba", precio: "S/ 30", icono: "🧔" },
-            { servicio: "Combo Completo", precio: "S/ 60", icono: "✨" },
-            { servicio: "Teñido", precio: "S/ 80", icono: "🎨" },
-            { servicio: "Ceremonia de Afeitado", precio: "S/ 50", icono: "🔥" },
-          ]);
-        }
-      } catch (err) {
-        console.error("❌ Error al cargar servicios:", err);
-        setErrorServices(
-          "Error al conectar con el servidor. Usando servicios de respaldo.",
-        );
-        // Servicios de respaldo en caso de error de conexión
-        setServices([
-          { servicio: "Corte de Cabello", precio: "S/ 40", icono: "✂️" },
-          { servicio: "Arreglo de Barba", precio: "S/ 30", icono: "🧔" },
-          { servicio: "Combo Completo", precio: "S/ 60", icono: "✨" },
-          { servicio: "Teñido", precio: "S/ 80", icono: "🎨" },
-          { servicio: "Ceremonia de Afeitado", precio: "S/ 50", icono: "🔥" },
-        ]);
-      } finally {
-        setLoadingServices(false);
+      if (data.success) {
+        setServices(data.data);
+        console.log(`✅ ${data.data.length} servicios cargados`);
+      } else {
+        console.error("❌ Error:", data.message);
       }
-    };
+    } catch (err) {
+      console.error("❌ Error al cargar servicios:", err);
+    } finally {
+      setLoadingServices(false);
+    }
+  };
 
+  useEffect(() => {
     loadServices();
   }, []);
 
@@ -92,7 +69,6 @@ function BookingForm() {
     setError("");
 
     try {
-      // 1. Guardar la reserva en la base de datos
       const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
@@ -107,7 +83,6 @@ function BookingForm() {
         throw new Error(data.message || "Error al guardar la reserva");
       }
 
-      // 2. Abrir WhatsApp con el mensaje de confirmación
       const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
@@ -157,22 +132,6 @@ function BookingForm() {
         <p style={{ textAlign: "center", marginBottom: "2rem", color: "#888" }}>
           Completa el formulario y te contactaremos por WhatsApp
         </p>
-
-        {errorServices && (
-          <div
-            style={{
-              background: "rgba(255, 165, 0, 0.1)",
-              border: "1px solid #ffa500",
-              color: "#ffa500",
-              padding: "10px 15px",
-              borderRadius: "10px",
-              marginBottom: "1rem",
-              textAlign: "center",
-            }}
-          >
-            ⚠️ {errorServices}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
