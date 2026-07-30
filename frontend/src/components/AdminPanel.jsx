@@ -13,7 +13,6 @@ import AdminGallery from "./AdminGallery";
 import AdminPrices from "./AdminPrices";
 
 function AdminPanel() {
-  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
   const API_URL = "https://barberia-backend-jh00.onrender.com";
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -108,13 +107,18 @@ function AdminPanel() {
       if (response.ok) {
         loadBookings();
 
-        // Si es cancelación y hay URL de WhatsApp, abrirla
-        if (data.cancelacion && data.whatsappUrl) {
-          if (
-            window.confirm(
-              "¿Deseas enviar una notificación de cancelación al cliente por WhatsApp?",
-            )
-          ) {
+        // Si hay URL de WhatsApp, preguntar si enviar
+        if (data.enviarWhatsApp && data.whatsappUrl) {
+          let mensajeConfirmacion = "";
+          if (newStatus === "confirmada") {
+            mensajeConfirmacion =
+              "¿Deseas enviar una confirmación al cliente por WhatsApp?";
+          } else if (newStatus === "cancelada") {
+            mensajeConfirmacion =
+              "¿Deseas enviar una notificación de cancelación al cliente por WhatsApp?";
+          }
+
+          if (window.confirm(mensajeConfirmacion)) {
             window.open(data.whatsappUrl, "_blank");
           }
         }
@@ -476,7 +480,7 @@ function AdminPanel() {
         </div>
 
         {/* ============================================
-            TABS (CON PRECIOS)
+            TABS
             ============================================ */}
         <div
           style={{
@@ -539,7 +543,7 @@ function AdminPanel() {
         </div>
 
         {/* ============================================
-            CONTENIDO DE LAS PESTAÑAS
+            CONTENIDO
             ============================================ */}
         {activeTab === "reservas" && (
           <div>

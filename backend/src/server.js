@@ -369,9 +369,7 @@ app.get("/api/bookings", verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
 // 2. CREAR RESERVA (PÚBLICA) - CON WHATSAPP
-// ============================================
 app.post("/api/bookings", async (req, res) => {
   try {
     const { nombre, telefono, servicio, fecha, hora, mensaje } = req.body;
@@ -383,7 +381,6 @@ app.post("/api/bookings", async (req, res) => {
       });
     }
 
-    // Guardar la reserva en la base de datos
     const booking = await Booking.create({
       nombre,
       telefono,
@@ -393,11 +390,7 @@ app.post("/api/bookings", async (req, res) => {
       mensaje: mensaje || "",
     });
 
-    // ============================================
-    // ENVIAR NOTIFICACIÓN POR WHATSAPP
-    // ============================================
     const numeroWhatsApp = "5351028354";
-
     const fechaFormateada = new Date(fecha).toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
@@ -460,7 +453,7 @@ app.get("/api/bookings/:id", verifyToken, async (req, res) => {
 });
 
 // ============================================
-// 4. ACTUALIZAR ESTADO (PROTEGIDA) - CON WHATSAPP DE CANCELACIÓN
+// 4. ACTUALIZAR ESTADO (PROTEGIDA) - CON WHATSAPP
 // ============================================
 app.put("/api/bookings/:id", verifyToken, async (req, res) => {
   try {
@@ -480,7 +473,6 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
       });
     }
 
-    // Obtener la reserva antes de actualizar
     const booking = await Booking.findById(id);
     if (!booking) {
       return res.status(404).json({
@@ -489,13 +481,52 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
       });
     }
 
-    // Actualizar el estado
     booking.estado = estado;
     await booking.save();
 
+    let whatsappUrl = null;
+    let mensajeWhatsApp = "";
+
     // ============================================
-    // ENVIAR WHATSAPP SI SE CANCELA
+    // ENVIAR WHATSAPP SEGÚN EL ESTADO
     // ============================================
+
+    // 1. SI SE CONFIRMA
+    if (estado === "confirmada") {
+      const numeroWhatsApp = booking.telefono.replace(/\+/g, "");
+      const nombreCliente = booking.nombre;
+      const servicio = booking.servicio;
+      const fecha = new Date(booking.fecha).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      const hora = booking.hora;
+
+      mensajeWhatsApp = `✅ *RESERVA CONFIRMADA - BARBERÍA*
+
+Hola ${nombreCliente},
+
+Tu reserva ha sido *CONFIRMADA* exitosamente. ¡Te esperamos!
+
+📋 *Detalles de tu reserva:*
+✂️ *Servicio:* ${servicio}
+📅 *Fecha:* ${fecha}
+🕐 *Hora:* ${hora}
+
+📍 *Dirección:* Quintin Banderas #19, Ranchuelo, Villa Clara, Cuba
+
+📱 *Teléfono de contacto:* +53 51028354
+
+¡Te esperamos con los brazos abiertos! ✨`;
+
+      const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
+      whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+      console.log(`📤 Mensaje de confirmación enviado a ${booking.telefono}`);
+    }
+
+    // 2. SI SE CANCELA
     if (estado === "cancelada") {
       const numeroWhatsApp = booking.telefono.replace(/\+/g, "");
       const nombreCliente = booking.nombre;
@@ -507,7 +538,7 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
       });
       const hora = booking.hora;
 
-      const mensajeWhatsApp = `❌ *CANCELACIÓN DE RESERVA - BARBERÍA*
+      mensajeWhatsApp = `❌ *CANCELACIÓN DE RESERVA - BARBERÍA*
 
 Hola ${nombreCliente},
 
@@ -525,24 +556,21 @@ Si deseas reagendar, contáctanos por este mismo medio.
 ¡Esperamos verte pronto! ✨`;
 
       const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-      const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+      whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
 
       console.log(`📤 Mensaje de cancelación enviado a ${booking.telefono}`);
-
-      res.json({
-        success: true,
-        message: "✅ Estado actualizado correctamente",
-        data: booking,
-        whatsappUrl: urlWhatsApp,
-        cancelacion: true,
-      });
-    } else {
-      res.json({
-        success: true,
-        message: "✅ Estado actualizado correctamente",
-        data: booking,
-      });
     }
+
+    // ============================================
+    // DEVOLVER RESPUESTA
+    // ============================================
+    res.json({
+      success: true,
+      message: "✅ Estado actualizado correctamente",
+      data: booking,
+      whatsappUrl: whatsappUrl,
+      enviarWhatsApp: !!whatsappUrl,
+    });
   } catch (error) {
     console.error("Error al actualizar:", error);
     res.status(500).json({
