@@ -16,13 +16,9 @@ const bookingSchema = new mongoose.Schema(
     servicio: {
       type: String,
       required: [true, "El servicio es obligatorio"],
-      enum: [
-        "Corte de Cabello",
-        "Arreglo de Barba",
-        "Combo Completo",
-        "Teñido",
-        "Ceremonia de Afeitado",
-      ],
+      trim: true,
+      // ❌ ELIMINA O COMENTA EL ENUM
+      // enum: ['Corte de Cabello', 'Arreglo de Barba', 'Combo Completo', 'Teñido', 'Ceremonia de Afeitado']
     },
     fecha: {
       type: Date,
@@ -46,8 +42,5 @@ const bookingSchema = new mongoose.Schema(
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
   },
 );
-
-// Índice para búsquedas rápidas
-bookingSchema.index({ estado: 1, fecha: 1 });
 
 module.exports = mongoose.model("Booking", bookingSchema);
