@@ -190,7 +190,7 @@ app.post("/api/auth/request-reset", async (req, res) => {
     user.reset_token_expires = resetTokenExpires;
     await user.save();
 
-    const resetLink = `https://barberia-web.vercel.app/reset-password?token=${resetToken}`;
+    const resetLink = `https://barberia-frontend-m4s9.onrender.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
