@@ -14,6 +14,7 @@ function BookingForm() {
 
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [errorServices, setErrorServices] = useState("");
   const [formData, setFormData] = useState({
     nombre: "",
     telefono: "",
@@ -34,16 +35,42 @@ function BookingForm() {
     const loadServices = async () => {
       try {
         setLoadingServices(true);
+        setErrorServices("");
+        console.log("🔄 Cargando servicios desde:", `${API_URL}/api/prices`);
+
         const response = await fetch(`${API_URL}/api/prices`);
         const data = await response.json();
 
+        console.log("📦 Respuesta de la API:", data);
+
         if (data.success) {
+          console.log(`✅ ${data.data.length} servicios cargados:`, data.data);
           setServices(data.data);
         } else {
-          console.error("Error al cargar servicios:", data.message);
+          console.error("❌ Error en la respuesta:", data.message);
+          setErrorServices("Error al cargar los servicios: " + data.message);
+          // Usar servicios de respaldo si la API falla
+          setServices([
+            { servicio: "Corte de Cabello", precio: "S/ 40", icono: "✂️" },
+            { servicio: "Arreglo de Barba", precio: "S/ 30", icono: "🧔" },
+            { servicio: "Combo Completo", precio: "S/ 60", icono: "✨" },
+            { servicio: "Teñido", precio: "S/ 80", icono: "🎨" },
+            { servicio: "Ceremonia de Afeitado", precio: "S/ 50", icono: "🔥" },
+          ]);
         }
       } catch (err) {
-        console.error("Error al cargar servicios:", err);
+        console.error("❌ Error al cargar servicios:", err);
+        setErrorServices(
+          "Error al conectar con el servidor. Usando servicios de respaldo.",
+        );
+        // Servicios de respaldo en caso de error de conexión
+        setServices([
+          { servicio: "Corte de Cabello", precio: "S/ 40", icono: "✂️" },
+          { servicio: "Arreglo de Barba", precio: "S/ 30", icono: "🧔" },
+          { servicio: "Combo Completo", precio: "S/ 60", icono: "✨" },
+          { servicio: "Teñido", precio: "S/ 80", icono: "🎨" },
+          { servicio: "Ceremonia de Afeitado", precio: "S/ 50", icono: "🔥" },
+        ]);
       } finally {
         setLoadingServices(false);
       }
@@ -131,6 +158,22 @@ function BookingForm() {
           Completa el formulario y te contactaremos por WhatsApp
         </p>
 
+        {errorServices && (
+          <div
+            style={{
+              background: "rgba(255, 165, 0, 0.1)",
+              border: "1px solid #ffa500",
+              color: "#ffa500",
+              padding: "10px 15px",
+              borderRadius: "10px",
+              marginBottom: "1rem",
+              textAlign: "center",
+            }}
+          >
+            ⚠️ {errorServices}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
             <label style={{ color: "#ccc" }}>
@@ -205,7 +248,7 @@ function BookingForm() {
               </option>
               {services.map((service) => (
                 <option
-                  key={service.id || service._id}
+                  key={service.id || service._id || service.servicio}
                   value={service.servicio}
                   style={{
                     background: "#1a1a1a",
