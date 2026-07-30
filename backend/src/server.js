@@ -369,7 +369,9 @@ app.get("/api/bookings", verifyToken, async (req, res) => {
   }
 });
 
-// 2. CREAR RESERVA (PÚBLICA)
+// ============================================
+// 2. CREAR RESERVA (PÚBLICA) - CON WHATSAPP
+// ============================================
 app.post("/api/bookings", async (req, res) => {
   try {
     const { nombre, telefono, servicio, fecha, hora, mensaje } = req.body;
@@ -381,6 +383,7 @@ app.post("/api/bookings", async (req, res) => {
       });
     }
 
+    // Guardar la reserva en la base de datos
     const booking = await Booking.create({
       nombre,
       telefono,
@@ -390,10 +393,48 @@ app.post("/api/bookings", async (req, res) => {
       mensaje: mensaje || "",
     });
 
+    // ============================================
+    // ENVIAR NOTIFICACIÓN POR WHATSAPP
+    // ============================================
+    const numeroWhatsApp = "5351028354"; // ← ¡CAMBIA ESTO POR TU NÚMERO!
+
+    // Formatear la fecha para el mensaje
+    const fechaFormateada = new Date(fecha).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    // Construir el mensaje
+    const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
+
+👤 *Cliente:* ${nombre}
+📱 *Teléfono:* ${telefono}
+✂️ *Servicio:* ${servicio}
+📅 *Fecha:* ${fechaFormateada}
+🕐 *Hora:* ${hora}
+💬 *Mensaje:* ${mensaje || "Sin mensaje adicional"}
+
+📌 *ID Reserva:* ${booking._id}
+🕒 *Creado:* ${new Date().toLocaleString("es-ES")}
+
+✅ *Estado:* Pendiente de confirmación
+
+---
+*Responde a este mensaje para confirmar la cita*`;
+
+    // Codificar el mensaje para la URL
+    const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
+
+    // Crear el enlace de WhatsApp
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+    // Devolver la URL para que el frontend la abra
     res.status(201).json({
       success: true,
       message: "✅ Reserva creada exitosamente",
       data: booking,
+      whatsappUrl: urlWhatsApp, // ← Enviamos la URL al frontend
     });
   } catch (error) {
     console.error("Error al crear reserva:", error);
@@ -639,7 +680,7 @@ app.delete("/api/gallery/:id", verifyToken, async (req, res) => {
 });
 
 // ============================================
-// RUTAS DE PRECIOS (NUEVAS)
+// RUTAS DE PRECIOS
 // ============================================
 
 // 1. OBTENER TODOS LOS PRECIOS (PÚBLICA)
@@ -704,9 +745,7 @@ app.put("/api/prices/:id", verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// 3. CREAR UN NUEVO SERVICIO (PROTEGIDA) - NUEVO
-// ============================================
+// 3. CREAR UN NUEVO SERVICIO (PROTEGIDA)
 app.post("/api/prices", verifyToken, async (req, res) => {
   try {
     const { servicio, precio, descripcion, icono } = req.body;
@@ -748,9 +787,7 @@ app.post("/api/prices", verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
-// 4. ELIMINAR UN SERVICIO (PROTEGIDA) - NUEVO
-// ============================================
+// 4. ELIMINAR UN SERVICIO (PROTEGIDA)
 app.delete("/api/prices/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
@@ -776,9 +813,7 @@ app.delete("/api/prices/:id", verifyToken, async (req, res) => {
   }
 });
 
-// ============================================
 // 5. RESTABLECER PRECIOS POR DEFECTO (PROTEGIDA)
-// ============================================
 app.post("/api/prices/reset", verifyToken, async (req, res) => {
   try {
     const defaultPrices = [

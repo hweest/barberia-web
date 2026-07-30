@@ -10,9 +10,7 @@ import {
 } from "react-icons/fa";
 
 function BookingForm() {
-  // ✅ URL del backend (hardcodeada temporalmente para pruebas)
   const API_URL = "https://barberia-backend-jh00.onrender.com";
-  // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -40,6 +38,7 @@ function BookingForm() {
     setError("");
 
     try {
+      // 1. Guardar la reserva en la base de datos
       const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
@@ -54,17 +53,20 @@ function BookingForm() {
         throw new Error(data.message || "Error al guardar la reserva");
       }
 
-      const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
+      // 2. Abrir WhatsApp con el mensaje de confirmación (para el cliente)
+      const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
 📱 *Teléfono:* ${formData.telefono}
 ✂️ *Servicio:* ${formData.servicio}
 📅 *Fecha:* ${formData.fecha}
 🕐 *Hora:* ${formData.hora}
-💬 *Mensaje:* ${formData.mensaje || "Sin mensaje adicional"}`;
+💬 *Mensaje:* ${formData.mensaje || "Sin mensaje adicional"}
+
+¡Esperamos tu confirmación! ✨`;
 
       window.open(
-        `https://wa.me/5351028354?text=${encodeURIComponent(mensajeWhatsApp)}`,
+        `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`,
         "_blank",
       );
 
@@ -230,6 +232,17 @@ function BookingForm() {
               opacity: loading ? 0.7 : 1,
             }}
             disabled={loading}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.target.style.transform = "translateY(-2px) scale(1.02)";
+                e.target.style.boxShadow =
+                  "0 10px 40px rgba(37, 211, 102, 0.5)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = "translateY(0) scale(1)";
+              e.target.style.boxShadow = "0 5px 25px rgba(37, 211, 102, 0.3)";
+            }}
           >
             <FaWhatsapp size={24} />{" "}
             {loading ? "Enviando..." : "Enviar por WhatsApp"}
