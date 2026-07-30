@@ -27,17 +27,6 @@ function Hero() {
               Transforma tu look con nosotros.
             </p>
             <div className="hero-buttons">
-              {/* BOTÓN QUE ABRE EL MODAL DE RESERVA */}
-              <button
-                className="btn-primary"
-                onClick={() => setIsModalOpen(true)}
-                style={{
-                  background: "linear-gradient(135deg, #d4a762, #b8923a)",
-                }}
-              >
-                📋 Reservar Cita
-              </button>
-
               {/* BOTÓN QUE VA DIRECTAMENTE A WHATSAPP */}
               <button className="btn-secondary" onClick={handleReservaWhatsApp}>
                 <FaWhatsapp /> WhatsApp
