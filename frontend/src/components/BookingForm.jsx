@@ -1,5 +1,5 @@
 // frontend/src/components/BookingForm.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaWhatsapp,
   FaUser,
@@ -7,6 +7,7 @@ import {
   FaCalendar,
   FaClock,
   FaComments,
+  FaChevronDown,
 } from "react-icons/fa";
 
 function BookingForm() {
@@ -14,6 +15,10 @@ function BookingForm() {
 
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
+  const dropdownRef = useRef(null);
+
   const [formData, setFormData] = useState({
     nombre: "",
     telefono: "",
@@ -34,20 +39,14 @@ function BookingForm() {
     const loadServices = async () => {
       try {
         setLoadingServices(true);
-        console.log("🔄 Cargando servicios desde la API...");
         const response = await fetch(`${API_URL}/api/prices`);
         const data = await response.json();
 
-        console.log("📦 Datos recibidos:", data);
-
         if (data.success) {
-          console.log(`✅ ${data.data.length} servicios cargados:`, data.data);
           setServices(data.data);
-        } else {
-          console.error("❌ Error en la respuesta:", data.message);
         }
       } catch (err) {
-        console.error("❌ Error al cargar servicios:", err);
+        console.error("Error al cargar servicios:", err);
       } finally {
         setLoadingServices(false);
       }
@@ -55,6 +54,28 @@ function BookingForm() {
 
     loadServices();
   }, []);
+
+  // ============================================
+  // CERRAR DROPDOWN AL HACER CLICK FUERA
+  // ============================================
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (service) => {
+    setSelectedService(service.servicio);
+    setFormData({
+      ...formData,
+      servicio: service.servicio,
+    });
+    setIsOpen(false);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -133,17 +154,6 @@ function BookingForm() {
           Completa el formulario y te contactaremos por WhatsApp
         </p>
 
-        {loadingServices ? (
-          <p style={{ textAlign: "center", color: "#888" }}>
-            Cargando servicios disponibles...
-          </p>
-        ) : services.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#ffa500" }}>
-            ⚠️ No hay servicios disponibles. Agrega servicios desde el panel de
-            administración.
-          </p>
-        ) : null}
-
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
             <label style={{ color: "#ccc" }}>
@@ -191,45 +201,119 @@ function BookingForm() {
             />
           </div>
 
-          <div className="form-group">
+          {/* ============================================
+          SELECTOR PERSONALIZADO DE SERVICIOS
+          ============================================ */}
+          <div className="form-group" ref={dropdownRef}>
             <label style={{ color: "#ccc" }}>✂️ Servicio *</label>
-            <select
-              name="servicio"
-              value={formData.servicio}
-              onChange={handleChange}
-              required
+            <div
               style={{
+                position: "relative",
                 width: "100%",
-                padding: "12px 16px",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.03)",
-                color: "#ffffff",
-                fontSize: "1rem",
-                appearance: "auto",
-                WebkitAppearance: "auto",
-                MozAppearance: "auto",
+                cursor: "pointer",
               }}
             >
-              <option value="" style={{ background: "#1a1a1a", color: "#888" }}>
-                {loadingServices
-                  ? "Cargando servicios..."
-                  : "Selecciona un servicio"}
-              </option>
-              {services.map((service) => (
-                <option
-                  key={service._id || service.id || service.servicio}
-                  value={service.servicio}
+              <div
+                onClick={() => setIsOpen(!isOpen)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.03)",
+                  color: selectedService ? "#ffffff" : "#888",
+                  fontSize: "1rem",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  userSelect: "none",
+                }}
+              >
+                <span>
+                  {loadingServices
+                    ? "Cargando servicios..."
+                    : selectedService || "Selecciona un servicio"}
+                </span>
+                <FaChevronDown
                   style={{
+                    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.3s ease",
+                    color: "#888",
+                  }}
+                />
+              </div>
+
+              {isOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 5px)",
+                    left: 0,
+                    right: 0,
+                    maxHeight: "200px",
+                    overflowY: "auto",
                     background: "#1a1a1a",
-                    color: "#ffffff",
-                    padding: "10px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "12px",
+                    zIndex: 100,
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
                   }}
                 >
-                  {service.icono || "✂️"} {service.servicio} - {service.precio}
-                </option>
-              ))}
-            </select>
+                  {loadingServices ? (
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        color: "#888",
+                        textAlign: "center",
+                      }}
+                    >
+                      Cargando...
+                    </div>
+                  ) : services.length === 0 ? (
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        color: "#ffa500",
+                        textAlign: "center",
+                      }}
+                    >
+                      No hay servicios disponibles
+                    </div>
+                  ) : (
+                    services.map((service) => (
+                      <div
+                        key={service._id || service.id || service.servicio}
+                        onClick={() => handleSelect(service)}
+                        style={{
+                          padding: "12px 16px",
+                          color: "#ffffff",
+                          cursor: "pointer",
+                          transition: "background 0.2s ease",
+                          borderBottom: "1px solid rgba(255,255,255,0.05)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(212, 167, 98, 0.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <span>
+                          {service.icono || "✂️"} {service.servicio}
+                        </span>
+                        <span style={{ color: "#d4a762" }}>
+                          {service.precio}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="form-row">
