@@ -1,5 +1,5 @@
 // frontend/src/components/BookingForm.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaWhatsapp,
   FaUser,
@@ -22,7 +22,7 @@ function BookingForm() {
     hora: "",
     mensaje: "",
   });
-
+  const [forceUpdate, setForceUpdate] = useState(0); // ← PARA FORZAR ACTUALIZACIÓN
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +41,7 @@ function BookingForm() {
 
       if (data.success) {
         setServices(data.data);
+        setForceUpdate((prev) => prev + 1); // ← FORZAR ACTUALIZACIÓN
         console.log(`✅ ${data.data.length} servicios cargados`);
       } else {
         console.error("❌ Error:", data.message);
@@ -53,6 +54,14 @@ function BookingForm() {
   };
 
   useEffect(() => {
+    loadServices();
+  }, []);
+
+  // ============================================
+  // FORZAR RECARGA CADA VEZ QUE EL COMPONENTE SE MONTA
+  // ============================================
+  useEffect(() => {
+    // Recargar servicios cuando el componente se monta
     loadServices();
   }, []);
 
@@ -187,6 +196,7 @@ function BookingForm() {
               value={formData.servicio}
               onChange={handleChange}
               required
+              key={forceUpdate} // ← CLAVE PARA FORZAR ACTUALIZACIÓN
               style={{
                 width: "100%",
                 padding: "12px 16px",
@@ -228,6 +238,18 @@ function BookingForm() {
                 }}
               >
                 Cargando servicios disponibles...
+              </p>
+            )}
+            {!loadingServices && services.length === 0 && (
+              <p
+                style={{
+                  color: "#ffa500",
+                  fontSize: "0.85rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                ⚠️ No hay servicios disponibles. Agrega servicios desde el panel
+                de administración.
               </p>
             )}
           </div>
