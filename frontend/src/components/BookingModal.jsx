@@ -20,18 +20,79 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
     return phoneRegex.test(phone);
   };
 
-  const formatPhone = (value) => {
+  // ============================================
+  // LIMPIAR TELÉFONO (SOLO NÚMEROS, + Y ESPACIOS)
+  // ============================================
+  const cleanPhone = (value) => {
     return value.replace(/[^+\d\s]/g, "");
+  };
+
+  // ============================================
+  // BLOQUEAR LETRAS EN EL CAMPO DE TELÉFONO
+  // ============================================
+  const handlePhoneKeyDown = (e) => {
+    const key = e.key;
+    const allowedKeys = [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "+",
+      " ",
+      "Backspace",
+      "Delete",
+      "Tab",
+      "Enter",
+      "ArrowLeft",
+      "ArrowRight",
+      "Home",
+      "End",
+      "Escape",
+      "Control",
+      "Meta",
+      "c",
+      "v",
+      "x",
+      "a",
+    ];
+
+    if (e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    if (!allowedKeys.includes(key)) {
+      e.preventDefault();
+    }
+  };
+
+  // ============================================
+  // LIMPIAR TELÉFONO DESPUÉS DE ESCRIBIR O PEGAR
+  // ============================================
+  const handlePhoneInput = (e) => {
+    const value = e.target.value;
+    const cleaned = cleanPhone(value);
+    if (cleaned !== value) {
+      setFormData({
+        ...formData,
+        telefono: cleaned,
+      });
+    }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "telefono") {
-      const formatted = formatPhone(value);
+      const cleaned = cleanPhone(value);
       setFormData({
         ...formData,
-        [name]: formatted,
+        [name]: cleaned,
       });
       return;
     }
@@ -43,7 +104,7 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
   };
 
   // ============================================
-  // ENVIAR RESERVA CON WHATSAPP (CON VALIDACIÓN)
+  // ENVIAR RESERVA CON WHATSAPP
   // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,8 +123,8 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
       return;
     }
 
-    // ✅ VALIDAR TELÉFONO
-    if (!validatePhone(formData.telefono)) {
+    const cleanTelefono = cleanPhone(formData.telefono);
+    if (!validatePhone(cleanTelefono)) {
       setError("❌ Ingresa un número de teléfono válido (mínimo 8 dígitos)");
       setLoading(false);
       return;
@@ -76,7 +137,7 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
       const reservaData = {
         nombre: formData.nombre.trim(),
-        telefono: formData.telefono.trim(),
+        telefono: cleanTelefono,
         servicio: servicio.servicio.trim(),
         fecha: fecha,
         hora: hora,
@@ -250,6 +311,8 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
+              onKeyDown={handlePhoneKeyDown}
+              onInput={handlePhoneInput}
               required
               placeholder="+53 51028354"
               style={{

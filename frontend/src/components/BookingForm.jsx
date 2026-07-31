@@ -36,18 +36,74 @@ function BookingForm() {
   // VALIDACIÓN DE TELÉFONO
   // ============================================
   const validatePhone = (phone) => {
-    // Permite: +, números y espacios
-    // Debe tener al menos 8 dígitos
     const phoneRegex = /^[\+\d\s]{8,}$/;
     return phoneRegex.test(phone);
   };
 
   // ============================================
-  // FORMATEAR TELÉFONO MIENTRAS ESCRIBES
+  // LIMPIAR TELÉFONO (SOLO NÚMEROS, + Y ESPACIOS)
   // ============================================
-  const formatPhone = (value) => {
-    // Solo permite números, + y espacios
+  const cleanPhone = (value) => {
     return value.replace(/[^+\d\s]/g, "");
+  };
+
+  // ============================================
+  // BLOQUEAR LETRAS EN EL CAMPO DE TELÉFONO (TECLADO)
+  // ============================================
+  const handlePhoneKeyDown = (e) => {
+    const key = e.key;
+    const allowedKeys = [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "+",
+      " ",
+      "Backspace",
+      "Delete",
+      "Tab",
+      "Enter",
+      "ArrowLeft",
+      "ArrowRight",
+      "Home",
+      "End",
+      "Escape",
+      "Control",
+      "Meta",
+      "c",
+      "v",
+      "x",
+      "a",
+    ];
+
+    // Permitir Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A
+    if (e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    if (!allowedKeys.includes(key)) {
+      e.preventDefault();
+    }
+  };
+
+  // ============================================
+  // LIMPIAR TELÉFONO DESPUÉS DE ESCRIBIR O PEGAR
+  // ============================================
+  const handlePhoneInput = (e) => {
+    const value = e.target.value;
+    const cleaned = cleanPhone(value);
+    if (cleaned !== value) {
+      setFormData({
+        ...formData,
+        telefono: cleaned,
+      });
+    }
   };
 
   // ============================================
@@ -104,12 +160,11 @@ function BookingForm() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Si es el campo de teléfono, formatear
     if (name === "telefono") {
-      const formatted = formatPhone(value);
+      const cleaned = cleanPhone(value);
       setFormData({
         ...formData,
-        [name]: formatted,
+        [name]: cleaned,
       });
       return;
     }
@@ -121,29 +176,36 @@ function BookingForm() {
   };
 
   // ============================================
-  // ENVIAR RESERVA CON WHATSAPP (CON VALIDACIÓN)
+  // ENVIAR RESERVA CON WHATSAPP
   // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // ✅ VALIDAR TELÉFONO
-    if (!validatePhone(formData.telefono)) {
+    // ✅ VALIDAR TELÉFONO (DOBLE PROTECCIÓN)
+    const cleanTelefono = cleanPhone(formData.telefono);
+    if (!validatePhone(cleanTelefono)) {
       setError("❌ Ingresa un número de teléfono válido (mínimo 8 dígitos)");
       setLoading(false);
       return;
     }
 
+    // ✅ ACTUALIZAR CON EL TELÉFONO LIMPIO
+    const dataToSend = {
+      ...formData,
+      telefono: cleanTelefono,
+    };
+
     try {
-      console.log("📤 Enviando reserva:", formData);
+      console.log("📤 Enviando reserva:", dataToSend);
 
       const response = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       const data = await response.json();
@@ -154,7 +216,6 @@ function BookingForm() {
 
       console.log("✅ Reserva creada:", data);
 
-      // ✅ PREGUNTAR ANTES DE ABRIR WHATSAPP
       let whatsappUrl = null;
 
       if (data.whatsappUrl) {
@@ -162,12 +223,12 @@ function BookingForm() {
       } else {
         const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
-👤 *Nombre:* ${formData.nombre}
-📱 *Teléfono:* ${formData.telefono}
-✂️ *Servicio:* ${formData.servicio}
-📅 *Fecha:* ${formData.fecha}
-🕐 *Hora:* ${formData.hora}
-💬 *Mensaje:* ${formData.mensaje || "Sin mensaje adicional"}
+👤 *Nombre:* ${dataToSend.nombre}
+📱 *Teléfono:* ${dataToSend.telefono}
+✂️ *Servicio:* ${dataToSend.servicio}
+📅 *Fecha:* ${dataToSend.fecha}
+🕐 *Hora:* ${dataToSend.hora}
+💬 *Mensaje:* ${dataToSend.mensaje || "Sin mensaje adicional"}
 
 ¡Esperamos tu confirmación! ✨`;
 
@@ -246,6 +307,8 @@ function BookingForm() {
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
+              onKeyDown={handlePhoneKeyDown}
+              onInput={handlePhoneInput}
               required
               placeholder="+53 51028354"
               style={{
