@@ -12,7 +12,30 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ============================================
+  // VALIDACIÓN DE TELÉFONO
+  // ============================================
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[\+\d\s]{8,}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const formatPhone = (value) => {
+    return value.replace(/[^+\d\s]/g, "");
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "telefono") {
+      const formatted = formatPhone(value);
+      setFormData({
+        ...formData,
+        [name]: formatted,
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -20,7 +43,7 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
   };
 
   // ============================================
-  // ENVIAR RESERVA CON WHATSAPP (CON CONFIRMACIÓN)
+  // ENVIAR RESERVA CON WHATSAPP (CON VALIDACIÓN)
   // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +58,13 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
     if (!formData.nombre || !formData.telefono) {
       setError("Todos los campos son obligatorios");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ VALIDAR TELÉFONO
+    if (!validatePhone(formData.telefono)) {
+      setError("❌ Ingresa un número de teléfono válido (mínimo 8 dígitos)");
       setLoading(false);
       return;
     }
@@ -73,13 +103,11 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
       console.log("✅ Reserva creada:", data);
 
-      // ✅ PREGUNTAR ANTES DE ABRIR WHATSAPP
       let whatsappUrl = null;
 
       if (data.whatsappUrl) {
         whatsappUrl = data.whatsappUrl;
       } else {
-        // Fallback
         const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Cliente:* ${formData.nombre}
@@ -94,7 +122,6 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
         whatsappUrl = `https://wa.me/5351028354?text=${encodeURIComponent(mensajeWhatsApp)}`;
       }
 
-      // ✅ PREGUNTAR SI QUIERE ENVIAR NOTIFICACIÓN POR WHATSAPP
       if (window.confirm("¿Deseas enviar la reserva por WhatsApp?")) {
         window.location.href = whatsappUrl;
       }
@@ -235,6 +262,9 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
                 fontSize: "1rem",
               }}
             />
+            <small style={{ color: "#555", fontSize: "0.8rem" }}>
+              Solo números, + y espacios (mínimo 8 dígitos)
+            </small>
           </div>
 
           {error && (

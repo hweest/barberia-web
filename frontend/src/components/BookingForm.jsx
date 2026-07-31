@@ -33,6 +33,24 @@ function BookingForm() {
   const [error, setError] = useState("");
 
   // ============================================
+  // VALIDACIÓN DE TELÉFONO
+  // ============================================
+  const validatePhone = (phone) => {
+    // Permite: +, números y espacios
+    // Debe tener al menos 8 dígitos
+    const phoneRegex = /^[\+\d\s]{8,}$/;
+    return phoneRegex.test(phone);
+  };
+
+  // ============================================
+  // FORMATEAR TELÉFONO MIENTRAS ESCRIBES
+  // ============================================
+  const formatPhone = (value) => {
+    // Solo permite números, + y espacios
+    return value.replace(/[^+\d\s]/g, "");
+  };
+
+  // ============================================
   // CARGAR SERVICIOS DESDE LA BASE DE DATOS
   // ============================================
   useEffect(() => {
@@ -84,19 +102,38 @@ function BookingForm() {
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Si es el campo de teléfono, formatear
+    if (name === "telefono") {
+      const formatted = formatPhone(value);
+      setFormData({
+        ...formData,
+        [name]: formatted,
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
   // ============================================
-  // ENVIAR RESERVA CON WHATSAPP (CON CONFIRMACIÓN)
+  // ENVIAR RESERVA CON WHATSAPP (CON VALIDACIÓN)
   // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // ✅ VALIDAR TELÉFONO
+    if (!validatePhone(formData.telefono)) {
+      setError("❌ Ingresa un número de teléfono válido (mínimo 8 dígitos)");
+      setLoading(false);
+      return;
+    }
 
     try {
       console.log("📤 Enviando reserva:", formData);
@@ -123,7 +160,6 @@ function BookingForm() {
       if (data.whatsappUrl) {
         whatsappUrl = data.whatsappUrl;
       } else {
-        // Fallback: construir mensaje manualmente
         const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
@@ -138,7 +174,6 @@ function BookingForm() {
         whatsappUrl = `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`;
       }
 
-      // ✅ PREGUNTAR SI QUIERE ENVIAR NOTIFICACIÓN POR WHATSAPP
       if (window.confirm("¿Deseas enviar la reserva por WhatsApp?")) {
         window.location.href = whatsappUrl;
       }
@@ -223,6 +258,9 @@ function BookingForm() {
                 fontSize: "1rem",
               }}
             />
+            <small style={{ color: "#555", fontSize: "0.8rem" }}>
+              Solo números, + y espacios (mínimo 8 dígitos)
+            </small>
           </div>
 
           {/* ============================================
@@ -435,9 +473,10 @@ function BookingForm() {
           {error && (
             <div
               style={{
-                background: "#ff4444",
-                color: "white",
-                padding: "10px 15px",
+                background: "rgba(255,0,0,0.1)",
+                border: "1px solid #ff4444",
+                color: "#ff4444",
+                padding: "12px",
                 borderRadius: "10px",
                 marginBottom: "1rem",
                 textAlign: "center",
