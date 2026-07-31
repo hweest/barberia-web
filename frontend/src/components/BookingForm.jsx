@@ -91,7 +91,7 @@ function BookingForm() {
   };
 
   // ============================================
-  // ENVIAR RESERVA CON WHATSAPP
+  // ENVIAR RESERVA CON WHATSAPP (CON CONFIRMACIÓN)
   // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,9 +117,11 @@ function BookingForm() {
 
       console.log("✅ Reserva creada:", data);
 
-      // ✅ USAR LA URL DE WHATSAPP QUE DEVUELVE EL BACKEND
+      // ✅ PREGUNTAR ANTES DE ABRIR WHATSAPP
+      let whatsappUrl = null;
+
       if (data.whatsappUrl) {
-        window.location.href = data.whatsappUrl;
+        whatsappUrl = data.whatsappUrl;
       } else {
         // Fallback: construir mensaje manualmente
         const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
@@ -133,10 +135,12 @@ function BookingForm() {
 
 ¡Esperamos tu confirmación! ✨`;
 
-        window.open(
-          `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`,
-          "_blank",
-        );
+        whatsappUrl = `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`;
+      }
+
+      // ✅ PREGUNTAR SI QUIERE ENVIAR NOTIFICACIÓN POR WHATSAPP
+      if (window.confirm("¿Deseas enviar la reserva por WhatsApp?")) {
+        window.location.href = whatsappUrl;
       }
 
       setSubmitted(true);
