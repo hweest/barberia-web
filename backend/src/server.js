@@ -369,7 +369,9 @@ app.get("/api/bookings", verifyToken, async (req, res) => {
   }
 });
 
-// 2. CREAR RESERVA (PÚBLICA) - CON WHATSAPP
+// ============================================
+// 2. CREAR RESERVA (PÚBLICA) - CON WHATSAPP (whatsapp://)
+// ============================================
 app.post("/api/bookings", async (req, res) => {
   try {
     const { nombre, telefono, servicio, fecha, hora, mensaje } = req.body;
@@ -415,7 +417,8 @@ app.post("/api/bookings", async (req, res) => {
 *Responde a este mensaje para confirmar la cita*`;
 
     const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+    // ✅ USAR whatsapp:// EN LUGAR DE https://wa.me
+    const urlWhatsApp = `whatsapp://send?phone=${numeroWhatsApp}&text=${mensajeCodificado}`;
 
     res.status(201).json({
       success: true,
@@ -453,7 +456,7 @@ app.get("/api/bookings/:id", verifyToken, async (req, res) => {
 });
 
 // ============================================
-// 4. ACTUALIZAR ESTADO (PROTEGIDA) - CON WHATSAPP
+// 4. ACTUALIZAR ESTADO (PROTEGIDA) - CON WHATSAPP (whatsapp://)
 // ============================================
 app.put("/api/bookings/:id", verifyToken, async (req, res) => {
   try {
@@ -488,7 +491,7 @@ app.put("/api/bookings/:id", verifyToken, async (req, res) => {
     let mensajeWhatsApp = "";
 
     // ============================================
-    // ENVIAR WHATSAPP SEGÚN EL ESTADO
+    // ENVIAR WHATSAPP SEGÚN EL ESTADO (whatsapp://)
     // ============================================
 
     // 1. SI SE CONFIRMA
@@ -521,7 +524,8 @@ Tu reserva ha sido *CONFIRMADA* exitosamente. ¡Te esperamos!
 ¡Te esperamos con los brazos abiertos! ✨`;
 
       const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-      whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+      // ✅ USAR whatsapp:// EN LUGAR DE https://wa.me
+      whatsappUrl = `whatsapp://send?phone=${numeroWhatsApp}&text=${mensajeCodificado}`;
 
       console.log(`📤 Mensaje de confirmación enviado a ${booking.telefono}`);
     }
@@ -556,7 +560,8 @@ Si deseas reagendar, contáctanos por este mismo medio.
 ¡Esperamos verte pronto! ✨`;
 
       const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-      whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+      // ✅ USAR whatsapp:// EN LUGAR DE https://wa.me
+      whatsappUrl = `whatsapp://send?phone=${numeroWhatsApp}&text=${mensajeCodificado}`;
 
       console.log(`📤 Mensaje de cancelación enviado a ${booking.telefono}`);
     }
