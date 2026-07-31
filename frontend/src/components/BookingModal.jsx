@@ -19,12 +19,14 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
     });
   };
 
+  // ============================================
+  // ENVIAR RESERVA CON WHATSAPP
+  // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // ✅ Validación mejorada
     if (!servicio || !servicio.servicio) {
       setError("Error: Servicio no válido");
       setLoading(false);
@@ -42,11 +44,10 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
       const fecha = now.toISOString().split("T")[0];
       const hora = now.toTimeString().slice(0, 5);
 
-      // ✅ Asegurar que el servicio se envía correctamente
       const reservaData = {
         nombre: formData.nombre.trim(),
         telefono: formData.telefono.trim(),
-        servicio: servicio.servicio.trim(), // ← Asegurar que es string
+        servicio: servicio.servicio.trim(),
         fecha: fecha,
         hora: hora,
         mensaje: `Reserva desde el botón de WhatsApp para: ${servicio.servicio}`,
@@ -72,7 +73,12 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
       console.log("✅ Reserva creada:", data);
 
-      const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
+      // ✅ USAR LA URL DE WHATSAPP QUE DEVUELVE EL BACKEND
+      if (data.whatsappUrl) {
+        window.location.href = data.whatsappUrl;
+      } else {
+        // Fallback
+        const mensajeWhatsApp = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Cliente:* ${formData.nombre}
 📱 *Teléfono:* ${formData.telefono}
@@ -83,10 +89,11 @@ function BookingModal({ isOpen, onClose, servicio, onSuccess }) {
 
 ¡Esperamos tu confirmación! ✨`;
 
-      window.open(
-        `https://wa.me/5351028354?text=${encodeURIComponent(mensajeWhatsApp)}`,
-        "_blank",
-      );
+        window.open(
+          `https://wa.me/5351028354?text=${encodeURIComponent(mensajeWhatsApp)}`,
+          "_blank",
+        );
+      }
 
       onSuccess();
       onClose();

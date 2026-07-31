@@ -90,6 +90,9 @@ function BookingForm() {
     });
   };
 
+  // ============================================
+  // ENVIAR RESERVA CON WHATSAPP
+  // ============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -114,7 +117,12 @@ function BookingForm() {
 
       console.log("✅ Reserva creada:", data);
 
-      const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
+      // ✅ USAR LA URL DE WHATSAPP QUE DEVUELVE EL BACKEND
+      if (data.whatsappUrl) {
+        window.location.href = data.whatsappUrl;
+      } else {
+        // Fallback: construir mensaje manualmente
+        const mensajeCliente = `📋 *NUEVA RESERVA - BARBERÍA*
 
 👤 *Nombre:* ${formData.nombre}
 📱 *Teléfono:* ${formData.telefono}
@@ -125,10 +133,11 @@ function BookingForm() {
 
 ¡Esperamos tu confirmación! ✨`;
 
-      window.open(
-        `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`,
-        "_blank",
-      );
+        window.open(
+          `https://wa.me/5351028354?text=${encodeURIComponent(mensajeCliente)}`,
+          "_blank",
+        );
+      }
 
       setSubmitted(true);
     } catch (err) {
@@ -213,7 +222,7 @@ function BookingForm() {
           </div>
 
           {/* ============================================
-          SELECTOR PERSONALIZADO DE SERVICIOS (REACT)
+          SELECTOR PERSONALIZADO DE SERVICIOS
           ============================================ */}
           <div className="form-group" ref={dropdownRef}>
             <label style={{ color: "#ccc" }}>✂️ Servicio *</label>
@@ -224,7 +233,6 @@ function BookingForm() {
                 cursor: "pointer",
               }}
             >
-              {/* Input visible con ícono */}
               <div
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
@@ -262,7 +270,6 @@ function BookingForm() {
                 />
               </div>
 
-              {/* Dropdown con opciones (React puro) */}
               {isOpen && (
                 <div
                   style={{
