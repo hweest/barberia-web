@@ -88,7 +88,7 @@ function AdminPanel() {
   };
 
   // ============================================
-  // ACTUALIZAR ESTADO DE UNA RESERVA (CON WHATSAPP)
+  // ACTUALIZAR ESTADO DE UNA RESERVA (CON WHATSAPP - MÓVIL)
   // ============================================
   const updateStatus = async (id, newStatus) => {
     try {
@@ -119,7 +119,8 @@ function AdminPanel() {
           }
 
           if (window.confirm(mensajeConfirmacion)) {
-            window.open(data.whatsappUrl, "_blank");
+            // ✅ REDIRIGE EN LUGAR DE ABRIR NUEVA VENTANA (FUNCIONA EN MÓVIL)
+            window.location.href = data.whatsappUrl;
           }
         }
       } else {
